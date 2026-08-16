@@ -7,9 +7,18 @@
  * a lot of parallel queries on load.
  */
 
-export const API_BASE_URL = `${(
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
-).replace(/\/$/, '')}/api/v1`;
+/**
+ * The API origin, without the version prefix.
+ *
+ * Defaults to the hosted API so every environment — local, preview, deployed —
+ * talks to it unless NEXT_PUBLIC_API_URL says otherwise. Point at a server on
+ * this machine with NEXT_PUBLIC_API_URL=http://localhost:4000 in .env.local.
+ */
+export const API_ORIGIN = (
+  process.env.NEXT_PUBLIC_API_URL ?? 'https://binman-kx0b.onrender.com'
+).replace(/\/$/, '');
+
+export const API_BASE_URL = `${API_ORIGIN}/api/v1`;
 
 const ACCESS_KEY = 'binman.admin.access';
 const REFRESH_KEY = 'binman.admin.refresh';

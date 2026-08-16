@@ -6,8 +6,13 @@
  * the server revokes every session when a spent refresh token is replayed.
  */
 
+/**
+ * Defaults to the hosted API so a driver's phone reaches it from any network.
+ * `localhost` only ever worked in a desktop browser on the same machine as the
+ * server, which is not where this app is used.
+ */
 export const API_BASE_URL = `${(
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+  process.env.NEXT_PUBLIC_API_URL ?? 'https://binman-kx0b.onrender.com'
 ).replace(/\/$/, '')}/api/v1`;
 
 const ACCESS_KEY = 'binman.driver.access';

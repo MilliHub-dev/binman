@@ -60,9 +60,13 @@ export const issueOtp = async (
 
   if (onCooldown) {
     const ttl = await redis.ttl(cooldownKey).catch(() => env.OTP_RESEND_COOLDOWN_SECONDS);
+    const retryAfterSeconds = Math.max(ttl, 1);
     throw new TooManyRequestsError(
-      `Please wait ${Math.max(ttl, 1)} seconds before requesting another code`,
+      `Please wait ${retryAfterSeconds} seconds before requesting another code`,
       'OTP_COOLDOWN',
+      // Lets the client resync its countdown to the server's rather than
+      // guessing, so "Resend code" is never offered a moment too early.
+      { retryAfterSeconds },
     );
   }
 

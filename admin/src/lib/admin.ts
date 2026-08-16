@@ -1,4 +1,4 @@
-import { api, qs, type PageMeta } from './api';
+import { api, qs, API_ORIGIN, type PageMeta } from './api';
 
 /**
  * Typed wrappers over the 37 admin endpoints in
@@ -374,8 +374,8 @@ export const driverReport = (from: string, to: string) =>
 
 /** CSV export is a file download, so it bypasses the JSON envelope. */
 export const exportBookingsUrl = (from: string, to: string) =>
-  `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/v1/admin/reports/export/bookings${qs(
-    { from, to, format: 'csv' },
-  )}`;
+  // Reuses the client's origin rather than re-deriving it: two copies of the
+  // same default drift, and this one silently pointed at localhost.
+  `${API_ORIGIN}/api/v1/admin/reports/export/bookings${qs({ from, to, format: 'csv' })}`;
 
 export type { PageMeta };

@@ -56,8 +56,17 @@ export class ConflictError extends AppError {
 }
 
 export class TooManyRequestsError extends AppError {
-  constructor(message = 'Too many requests, please try again later', code = 'RATE_LIMITED') {
-    super(message, 429, code);
+  /**
+   * `details` typically carries `{ retryAfterSeconds }`. A client that has to
+   * scrape the wait out of the message is coupled to prose this file already
+   * declares changeable.
+   */
+  constructor(
+    message = 'Too many requests, please try again later',
+    code = 'RATE_LIMITED',
+    details?: unknown,
+  ) {
+    super(message, 429, code, details);
   }
 }
 
