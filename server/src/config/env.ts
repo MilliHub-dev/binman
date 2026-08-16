@@ -148,6 +148,34 @@ const schema = z
       });
     }
 
+    /**
+     * The log driver writes the message to stdout and reports `delivered: true`,
+     * so a deployment left on it sends no OTPs at all while every layer above
+     * reports success — the customer simply never receives a code, and nothing
+     * anywhere is logged as an error. Refusing to boot is the only way this
+     * surfaces before a real person is locked out.
+     */
+    if (isProdLike && env.SMS_PROVIDER === 'log') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['SMS_PROVIDER'],
+        message:
+          'SMS_PROVIDER must be a real provider outside development — "log" sends nothing while reporting success',
+      });
+    }
+
+    // Sendchamp authenticates with the public key; without it every send 401s.
+    if (
+      (env.SMS_PROVIDER === 'sendchamp' || env.EMAIL_PROVIDER === 'sendchamp') &&
+      !env.SENDCHAMP_PUBLIC_KEY
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['SENDCHAMP_PUBLIC_KEY'],
+        message: 'SENDCHAMP_PUBLIC_KEY is required when a Sendchamp provider is selected',
+      });
+    }
+
     if (isProdLike && !env.FLUTTERWAVE_SECRET_KEY) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -193,6 +221,45 @@ const schema = z
           message:
             'FCM_PRIVATE_KEY does not look like a PEM key. Copy the whole private_key value from the service-account JSON, including the BEGIN/END lines.',
         });
+      }
+    }
+
+    /**
+     * Secrets that were never changed from their development values.
+     *
+     * Being non-empty is not the same as being secret. A JWT signing key left
+     * at "dev-access-secret-…" lets anyone who has seen this repository mint a
+     * token for any account, administrators included; a webhook hash left at
+     * "replace-me" lets anyone forge a payment callback and get free service.
+     * Both pass every other check here, so they are matched by shape.
+     */
+    if (isProdLike) {
+      const placeholder = /^(replace|change)[-_ ]?me$|^(dev|test|local|sample|example|placeholder)[-_]/i;
+      const secrets = [
+        ['JWT_ACCESS_SECRET', env.JWT_ACCESS_SECRET],
+        ['JWT_REFRESH_SECRET', env.JWT_REFRESH_SECRET],
+        ['FLUTTERWAVE_WEBHOOK_SECRET_HASH', env.FLUTTERWAVE_WEBHOOK_SECRET_HASH],
+        ...(env.WHATSAPP_ENABLED ? [['WHATSAPP_VERIFY_TOKEN', env.WHATSAPP_VERIFY_TOKEN]] : []),
+      ] as const;
+
+      for (const [name, value] of secrets) {
+        if (value && placeholder.test(value)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [name],
+            message: `${name} is still a development placeholder — generate a real secret before deploying`,
+          });
+        }
+      }
+
+      for (const name of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const) {
+        if (env[name].length < 32) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [name],
+            message: `${name} must be at least 32 characters in production`,
+          });
+        }
       }
     }
 
