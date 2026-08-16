@@ -36,12 +36,17 @@ behaviour when moving off shared development keys.
 
 ## 2. Blockers that configuration alone will not fix
 
-**Sendchamp is returning 401.** The key in `.env` is rejected on every endpoint
-tested, using the same scheme the app sends with. Until this is resolved no OTP
-can be delivered, and OTP is the only way a customer signs in — so the app is
-unusable, not merely degraded. Check the key is active in the Sendchamp
-dashboard and that the sender ID `BinMan` is approved; Nigerian networks reject
-unregistered sender IDs even with valid auth.
+**The Sendchamp sender ID must be one they have approved.** The credential is
+valid, but the sender name is not:
+
+```
+sender_name=BinMan     -> 400  "invalid sender name: BinMan"
+sender_name=Sendchamp  -> 200  accepted
+```
+
+Set `SENDCHAMP_SENDER_NAME=Sendchamp` to go live now. Register `BinMan` as a
+sender ID in the Sendchamp dashboard and switch once approved — that string is
+what recipients see as the sender, so it is worth having.
 
 **Flutterwave keys are LIVE.** `FLUTTERWAVE_SECRET_KEY` in `.env` is a live
 credential, so every booking taken will move real money. Confirm that is

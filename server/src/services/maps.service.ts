@@ -25,6 +25,7 @@ export interface GeocodeResult {
 }
 
 const GEOCODE_URL = 'https://api.mapbox.com/search/geocode/v6';
+const STATIC_URL = 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static';
 
 const enabled = (): boolean => {
   if (!env.MAPBOX_ACCESS_TOKEN) {
@@ -32,6 +33,44 @@ const enabled = (): boolean => {
     return false;
   }
   return true;
+};
+
+/**
+ * A rendered map image centred on a point, with a pin on it.
+ *
+ * Fetched here rather than in the app so the Mapbox token keeps the same
+ * server-side-only property the geocoding endpoints already rely on. The
+ * alternative — a native map SDK — would also mean every developer rebuilding
+ * their development client to see an address form.
+ */
+export const staticMap = async (options: {
+  latitude: number;
+  longitude: number;
+  zoom: number;
+  width: number;
+  height: number;
+  retina: boolean;
+}): Promise<Buffer | null> => {
+  if (!enabled()) return null;
+
+  const { latitude, longitude, zoom, width, height, retina } = options;
+  // Mapbox wants longitude first, and the pin colour without a leading hash.
+  const marker = `pin-l+189CF0(${longitude},${latitude})`;
+  const url =
+    `${STATIC_URL}/${marker}/${longitude},${latitude},${zoom},0/` +
+    `${width}x${height}${retina ? '@2x' : ''}`;
+
+  try {
+    const { data } = await axios.get<ArrayBuffer>(url, {
+      params: { access_token: env.MAPBOX_ACCESS_TOKEN, attribution: 'false', logo: 'false' },
+      responseType: 'arraybuffer',
+      timeout: 10_000,
+    });
+    return Buffer.from(data);
+  } catch (err) {
+    log.warn({ err }, 'static map render failed');
+    return null;
+  }
 };
 
 /** Free-text address to coordinates. */

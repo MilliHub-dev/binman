@@ -91,12 +91,30 @@ export const issueOtp = async (
     .set(cooldownKey, '1', 'EX', env.OTP_RESEND_COOLDOWN_SECONDS)
     .catch((err) => log.error({ err }, 'could not set OTP cooldown'));
 
-  await sendSms({
+  const sent = await sendSms({
     to: phone,
     message: `Your BinMan verification code is ${code}. It expires in ${Math.round(
       env.OTP_TTL_SECONDS / 60,
     )} minutes. Do not share it with anyone.`,
   });
+
+  /**
+   * A rejected send used to be discarded, so the API answered "Verification
+   * code sent" for a message the provider had refused — an unregistered sender
+   * ID returns 400 on every attempt, and the customer sat waiting for an SMS
+   * that was never going to arrive.
+   *
+   * The cooldown is cleared first: the code exists but nobody can read it, so
+   * making them wait out a resend window would punish them for our failure.
+   */
+  if (!sent.delivered) {
+    await redis.del(cooldownKey).catch((err) => log.error({ err }, 'could not clear OTP cooldown'));
+    log.error({ phone: maskPhone(phone), error: sent.error }, 'otp sms rejected by provider');
+    throw new ServiceUnavailableError(
+      'We could not send your code right now. Please try again in a moment.',
+      'OTP_SEND_FAILED',
+    );
+  }
 
   log.info({ phone: maskPhone(phone), purpose }, 'otp issued');
 

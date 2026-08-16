@@ -4,7 +4,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
 import { ok } from '../../lib/http';
 import { ServiceUnavailableError } from '../../lib/errors';
-import { geocode, reverseGeocode } from '../../services/maps.service';
+import { geocode, reverseGeocode, staticMap } from '../../services/maps.service';
 import { resolveServiceArea } from '../service-areas/service-areas.service';
 
 /**
@@ -23,6 +23,17 @@ const forwardQuery = z.object({
 const reverseQuery = z.object({
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
+});
+
+/**
+ * Bounded deliberately. This endpoint spends money at Mapbox on every call, so
+ * the size and zoom a client can ask for are capped rather than taken on trust.
+ */
+const staticMapQuery = reverseQuery.extend({
+  zoom: z.coerce.number().min(1).max(18).default(15),
+  width: z.coerce.number().int().min(64).max(800).default(600),
+  height: z.coerce.number().int().min(64).max(600).default(300),
+  retina: z.coerce.boolean().default(true),
 });
 
 export const geoRouter: Router = Router();
@@ -70,3 +81,30 @@ geoRouter.get('/reverse', validate({ query: reverseQuery }), async (req: Request
       : { serviceable: null, areaName: null },
   });
 });
+
+/**
+ * GET /api/v1/geo/static-map — a map image centred on a point.
+ *
+ * Streamed through the API so the app can show the customer where their pin
+ * actually sits without the Mapbox token ever leaving the server.
+ */
+geoRouter.get(
+  '/static-map',
+  validate({ query: staticMapQuery }),
+  async (req: Request, res: Response) => {
+    const options = req.query as unknown as z.infer<typeof staticMapQuery>;
+    const image = await staticMap(options);
+
+    if (!image) {
+      throw new ServiceUnavailableError(
+        'The map is unavailable right now.',
+        'STATIC_MAP_UNAVAILABLE',
+      );
+    }
+
+    // Coordinates round to a small set in practice, so caching cuts the bill.
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(image);
+  },
+);
