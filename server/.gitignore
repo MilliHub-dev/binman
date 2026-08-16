@@ -1,0 +1,25 @@
+node_modules/
+dist/
+coverage/
+
+.env
+.env.local
+.env.*.local
+
+uploads/
+tmp/
+
+# Service-account keys and any other credential file dropped into the repo.
+# A Firebase adminsdk key can push to every user; it must never be committed.
+*firebase-adminsdk*.json
+*service-account*.json
+serviceAccountKey.json
+*.pem
+*.p8
+*.p12
+
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/
