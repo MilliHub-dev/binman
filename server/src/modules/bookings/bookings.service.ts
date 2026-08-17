@@ -231,7 +231,7 @@ export const transitionBooking = async (
   newStatus: BookingStatus,
   options: { actorId?: string | null; reason?: string | null } = {},
 ): Promise<Booking> => {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundError('Booking');
 
@@ -260,6 +260,19 @@ export const transitionBooking = async (
 
     return updated;
   });
+
+  /**
+   * Outside the transaction: notifying is not something to roll back, and a
+   * slow push should not hold a database transaction open.
+   *
+   * This path is how staff complete a booking. It used to tell the customer
+   * nothing at all — only the driver's own "mark done" sent anything.
+   */
+  if (newStatus === BookingStatus.COMPLETED) {
+    void notifications.onBookingCompleted(result);
+  }
+
+  return result;
 };
 
 /**

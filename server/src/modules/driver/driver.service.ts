@@ -273,7 +273,7 @@ export const updateJobStatus = async (
       void notifications.notifyDriverArrived(booking);
       break;
     case BookingStatus.COMPLETED:
-      void notifications.notifyCollectionCompleted(booking);
+      void notifications.onBookingCompleted(booking);
       break;
     default:
       break;

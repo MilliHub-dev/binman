@@ -31,5 +31,11 @@ export const isValidJobId = (id: string): boolean =>
 export const paymentVerifyJobId = (reference: string, attempt = 1): string =>
   `verify-${reference}-${attempt}`;
 
+/**
+ * The "how did we do?" nudge after a completed job. One per booking, so a
+ * retried completion cannot ask the same customer twice.
+ */
+export const reviewRequestJobId = (bookingId: string): string => `review-${bookingId}`;
+
 /** The nightly subscription sweep. */
 export const SUBSCRIPTION_SWEEP_JOB_ID = 'subscription-sweep';

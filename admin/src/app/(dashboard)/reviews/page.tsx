@@ -13,13 +13,17 @@ import { Card, EmptyRow, ErrorNote, PageHeader, Skeleton, TableShell, Td, Th } f
  * the comments tell you which driver, which area, and what happened, which is
  * the only version anyone can act on.
  *
- * Poor ratings lead by default. Nobody opens this page to enjoy the five-stars.
+ * Opens on everything rather than on the poor ratings. Leading with complaints
+ * is the right instinct and the wrong default: with nothing but good reviews
+ * the page opened on an empty table and read as broken. The counts on each
+ * filter now carry that emphasis instead — they say plainly whether there is
+ * anything to attend to, without hiding what exists.
  */
 
 const FILTERS = [
-  { key: 'poor', label: 'Needs attention (1–3)', params: { maxRating: 3 } },
-  { key: 'good', label: 'Positive (4–5)', params: { minRating: 4 } },
-  { key: 'all', label: 'All reviews', params: {} },
+  { key: 'all', label: 'All', params: {} },
+  { key: 'poor', label: 'Needs attention', params: { maxRating: 3 } },
+  { key: 'good', label: 'Positive', params: { minRating: 4 } },
 ] as const;
 
 const Stars = ({ rating }: { rating: number }) => (
@@ -49,7 +53,7 @@ const splitComment = (comment: string | null) => {
 };
 
 export default function ReviewsPage() {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('poor');
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('all');
   const active = FILTERS.find((f) => f.key === filter)!;
 
   const summary = useQuery({ queryKey: ['rating-summary'], queryFn: getRatingSummary });
@@ -60,6 +64,13 @@ export default function ReviewsPage() {
 
   const items: AdminReview[] = reviews.data?.data ?? [];
   const total = summary.data?.total ?? 0;
+
+  const distribution = summary.data?.distribution ?? [];
+  const countFor = (key: (typeof FILTERS)[number]['key']) => {
+    const sum = (from: number, to: number) =>
+      distribution.filter((d) => d.rating >= from && d.rating <= to).reduce((n, d) => n + d.count, 0);
+    return key === 'poor' ? sum(1, 3) : key === 'good' ? sum(4, 5) : total;
+  };
 
   return (
     <div>
@@ -118,6 +129,11 @@ export default function ReviewsPage() {
             }`}
           >
             {option.label}
+            {summary.data ? (
+              <span className={filter === option.key ? 'ml-1.5 opacity-70' : 'ml-1.5 text-ink-400'}>
+                {countFor(option.key)}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -139,7 +155,16 @@ export default function ReviewsPage() {
           {reviews.isLoading ? (
             <Skeleton rows={4} cols={5} />
           ) : items.length === 0 ? (
-            <EmptyRow colSpan={5} message="No reviews in this range yet." />
+            <EmptyRow
+              colSpan={5}
+              message={
+                total === 0
+                  ? 'No customer has rated a job yet.'
+                  : filter === 'poor'
+                    ? 'Nothing needs attention — no ratings of 3 or below.'
+                    : 'No reviews match this filter.'
+              }
+            />
           ) : (
             items.map((review) => {
               const { tags, text } = splitComment(review.comment);

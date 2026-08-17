@@ -103,7 +103,13 @@ export const notify = async (input: NotificationInput): Promise<void> => {
 
 type BookingLike = Pick<Booking, 'id' | 'reference' | 'scheduledDate' | 'userId'> & {
   timeSlot?: { startTime: number } | null;
+  /** Optional so existing callers passing a narrow object still compile. */
+  serviceType?: Booking['serviceType'];
 };
+
+/** "pickup" or "cleaning", for copy that reads naturally for both services. */
+const serviceWord = (booking: BookingLike): string =>
+  booking.serviceType === 'CLEANING' ? 'cleaning' : 'pickup';
 
 const whenText = (booking: BookingLike): string => {
   const date = formatDateOnly(booking.scheduledDate);
@@ -162,6 +168,29 @@ export const notifyCollectionCompleted = (booking: BookingLike) =>
     metadata: { bookingId: booking.id, reference: booking.reference },
   });
 
+/**
+ * How long after completion to ask. Long enough that the customer has been
+ * outside and seen the bin, short enough that the job is still fresh.
+ */
+export const REVIEW_REQUEST_DELAY_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * Asks for a rating once the job is done.
+ *
+ * Sent a little after completion rather than the moment the truck pulls away —
+ * the customer has usually not been to the bin yet, and a rating asked before
+ * they have seen the result measures nothing.
+ */
+export const notifyReviewRequest = (booking: BookingLike) =>
+  notify({
+    userId: booking.userId,
+    type: 'REVIEW_REQUEST',
+    title: 'How did we do?',
+    message: `Tell us how your ${serviceWord(booking)} went — it takes a few seconds.`,
+    channels: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
+    metadata: { bookingId: booking.id, reference: booking.reference },
+  });
+
 export const notifyBookingCancelled = (booking: BookingLike, reason?: string | null) =>
   notify({
     userId: booking.userId,
@@ -199,3 +228,28 @@ export const notifyPickupReminder = (booking: BookingLike) =>
     channels: [NotificationChannel.IN_APP, NotificationChannel.PUSH, NotificationChannel.WHATSAPP],
     metadata: { bookingId: booking.id },
   });
+
+/**
+ * Everything that should happen when a job is finished.
+ *
+ * A single function because there are two ways a booking reaches COMPLETED —
+ * the driver marking it done, and a member of staff overriding the status — and
+ * only the driver's path was telling the customer anything. An admin completing
+ * a booking sent no notification at all.
+ */
+export const onBookingCompleted = async (booking: BookingLike): Promise<void> => {
+  await notifyCollectionCompleted(booking);
+
+  const { bookingQueue } = await import('../queues/queues');
+  const { reviewRequestJobId } = await import('../queues/jobIds');
+
+  await bookingQueue.add(
+    'review-request',
+    { bookingId: booking.id, kind: 'REVIEW_REQUEST' },
+    {
+      delay: REVIEW_REQUEST_DELAY_MS,
+      // Stable per booking, so a repeated completion cannot ask twice.
+      jobId: reviewRequestJobId(booking.id),
+    },
+  );
+};

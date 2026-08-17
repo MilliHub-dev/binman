@@ -46,7 +46,7 @@ export interface SubscriptionRunJob {
 
 export interface BookingReminderJob {
   bookingId: string;
-  kind: 'DAY_BEFORE' | 'EXPIRE_UNPAID';
+  kind: 'DAY_BEFORE' | 'EXPIRE_UNPAID' | 'REVIEW_REQUEST';
 }
 
 export const notificationQueue = make<NotificationJob>(QUEUE_NAMES.notification);

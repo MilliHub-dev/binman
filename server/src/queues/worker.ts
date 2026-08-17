@@ -212,6 +212,16 @@ const handleBookingJob = async (job: Job<BookingReminderJob>): Promise<void> => 
     return;
   }
 
+  if (job.data.kind === 'REVIEW_REQUEST') {
+    // Only ask about a job that actually finished, and only once — a customer
+    // who already rated must not be nudged about the same booking again.
+    if (booking.status !== 'COMPLETED') return;
+    const existing = await prisma.review.findUnique({ where: { bookingId: booking.id } });
+    if (existing) return;
+    await notifications.notifyReviewRequest(booking);
+    return;
+  }
+
   // Do not remind someone about a job that is no longer happening.
   if (['CANCELLED', 'FAILED', 'COMPLETED'].includes(booking.status)) return;
   await notifications.notifyPickupReminder(booking);
