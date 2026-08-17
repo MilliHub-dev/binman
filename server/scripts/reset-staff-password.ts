@@ -13,16 +13,42 @@
  * session for the account is revoked — a reset is exactly when you want any
  * stolen session to die.
  */
-import { randomBytes } from 'node:crypto';
-import { PrismaClient, Role } from '@prisma/client';
-import { hashPassword, assertPasswordStrength, PASSWORD_ROLES } from '../src/modules/auth/password.service';
+import { randomInt } from 'node:crypto';
+// The app's client, not a bare one: it carries the retry extension, and Neon
+// suspends its compute when idle — which is exactly the state a rarely-run
+// maintenance script finds it in.
+import { prisma } from '../src/lib/prisma';
+import {
+  hashPassword,
+  assertPasswordStrength,
+  PASSWORD_ROLES,
+} from '../src/modules/auth/password.service';
 
-const prisma = new PrismaClient();
+/**
+ * Readable when spoken, typed, or copied off a screen.
+ *
+ * The alphabet drops O/0, I/l/1 and similar look-alikes. A generated password
+ * is read by a human at least once, and "BinsO0Y88xcNzK7x" — capital O next to
+ * a zero — is a password that authenticates perfectly and still cannot be
+ * typed. Length carries the strength instead.
+ */
+const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I, O
+const LOWER = 'abcdefghijkmnpqrstuvwxyz'; // no l, o
+const DIGITS = '23456789'; // no 0, 1
 
-/** Readable, and comfortably past the strength rules. */
+const pick = (alphabet: string): string => alphabet[randomInt(0, alphabet.length)]!;
+
 const generate = (): string => {
-  const body = randomBytes(9).toString('base64url').replace(/[^a-zA-Z0-9]/g, '');
-  return `Bin${body}7x`;
+  const all = UPPER + LOWER + DIGITS;
+  // One of each class up front guarantees the strength rules are satisfied.
+  const chars = [pick(UPPER), pick(LOWER), pick(DIGITS)];
+  while (chars.length < 16) chars.push(pick(all));
+  // Fisher-Yates, so the guaranteed characters are not always in front.
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = randomInt(0, i + 1);
+    [chars[i], chars[j]] = [chars[j]!, chars[i]!];
+  }
+  return chars.join('');
 };
 
 const main = async () => {
