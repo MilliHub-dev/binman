@@ -384,7 +384,7 @@ export default function LandingPage() {
                     Download the app
                   </a>
                   <a
-                    href="https://wa.me/2347002466266"
+                    href="https://wa.me/2349038912979"
                     className="tap-target inline-flex items-center justify-center rounded-full border border-white/25 px-8 font-semibold text-white transition-colors hover:bg-white/10"
                   >
                     Book on WhatsApp
@@ -435,13 +435,13 @@ export default function LandingPage() {
               </p>
               <ul className="mt-3 space-y-2 text-ink-600">
                 <li>
-                  <a href="tel:+2347002466266" className="hover:text-brand">
-                    0700 BINMAN
+                  <a href="tel:+2349038912979" className="hover:text-brand">
+                    0903 891 2979
                   </a>
                 </li>
                 <li>
-                  <a href="mailto:support@binman.ng" className="hover:text-brand">
-                    support@binman.ng
+                  <a href="mailto:info.binman@gmail.com" className="hover:text-brand">
+                    info.binman@gmail.com
                   </a>
                 </li>
               </ul>

@@ -39,6 +39,7 @@ const NAV = [
       { href: '/areas', label: 'Service areas', icon: '◎' },
       { href: '/reports', label: 'Reports', icon: '◫' },
       { href: '/reviews', label: 'Ratings', icon: '★' },
+      { href: '/support', label: 'Support', icon: '✉' },
     ],
   },
 ];

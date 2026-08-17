@@ -191,6 +191,27 @@ export const notifyReviewRequest = (booking: BookingLike) =>
     metadata: { bookingId: booking.id, reference: booking.reference },
   });
 
+/**
+ * Tells a customer their issue was dealt with.
+ *
+ * Without this a ticket was a one-way street: someone reported a missed pickup,
+ * a dispatcher fixed it and marked it resolved, and the customer was never told
+ * anything — so as far as they knew they had been ignored.
+ */
+export const notifyTicketResolved = (ticket: {
+  userId: string;
+  ticketNumber: string;
+  subject: string;
+}) =>
+  notify({
+    userId: ticket.userId,
+    type: 'TICKET_RESOLVED',
+    title: 'Your issue has been resolved',
+    message: `"${ticket.subject}" (${ticket.ticketNumber}) has been marked resolved. Reply to us if it is still not right.`,
+    channels: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
+    metadata: { ticketNumber: ticket.ticketNumber },
+  });
+
 export const notifyBookingCancelled = (booking: BookingLike, reason?: string | null) =>
   notify({
     userId: booking.userId,

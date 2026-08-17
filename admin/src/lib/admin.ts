@@ -410,3 +410,30 @@ export const listReviews = (params: { page?: number; minRating?: number; maxRati
   api.list<AdminReview[]>(`/reviews/all${qs({ limit: 20, ...params })}`);
 
 export const getRatingSummary = () => api.get<RatingSummary>('/reviews/summary');
+
+// --- Support ----------------------------------------------------------------
+
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  assignedTo: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  user: { id: string; firstName: string | null; lastName: string | null; phone: string };
+  booking: { id: string; reference: string } | null;
+}
+
+export const listTickets = (filters: { page?: number; status?: TicketStatus; priority?: TicketPriority } = {}) =>
+  api.list<SupportTicket[]>(`/support/admin/tickets${qs({ limit: 20, ...filters })}`);
+
+export const updateTicket = (
+  id: string,
+  input: { status?: TicketStatus; priority?: TicketPriority },
+) => api.patch<SupportTicket>(`/support/admin/tickets/${id}`, input);

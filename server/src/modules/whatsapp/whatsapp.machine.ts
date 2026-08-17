@@ -21,6 +21,7 @@ import { listAddresses } from '../addresses/addresses.service';
 import { getAvailability } from '../time-slots/time-slots.service';
 import { quote } from '../pricing/pricing.service';
 import { STATUS_LABELS, CUSTOMER_CANCELLABLE } from '../bookings/booking.status';
+import { SUPPORT_EMAIL, SUPPORT_PHONE_DISPLAY } from '../../config/contact';
 
 const log = createLogger('whatsapp.machine');
 
@@ -737,7 +738,7 @@ const handleMenuChoice = async (phone: string, user: User, choice: string): Prom
     case 'MENU_SUPPORT': {
       await wa.sendText(
         phone,
-        'Our support team is here to help.\n\n📞 Call: 0700-BINMAN\n📧 Email: support@binman.ng\n\nOr just describe your issue here and an agent will pick it up.',
+        `Our support team is here to help.\n\n📞 Call: ${SUPPORT_PHONE_DISPLAY}\n📧 Email: ${SUPPORT_EMAIL}\n\nOr just describe your issue here and an agent will pick it up.`,
       );
       await saveSession(phone, STATES.IDLE, {});
       return;

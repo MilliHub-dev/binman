@@ -9,6 +9,7 @@ import { buildMeta, paginationQuery, toSkipTake } from '../../lib/pagination';
 import { prisma } from '../../lib/prisma';
 import { NotFoundError } from '../../lib/errors';
 import { generateTicketNumber } from '../../lib/reference';
+import * as notifications from '../../services/notification.service';
 
 /**
  * Customer support tickets (prd.md §24). In-app chat is a future feature; this
@@ -137,6 +138,12 @@ supportRouter.patch(
         ...(body.status === TicketStatus.RESOLVED ? { resolvedAt: new Date() } : {}),
       },
     });
+
+    // Only on the transition into RESOLVED, so re-saving a resolved ticket
+    // does not notify the customer again.
+    if (body.status === TicketStatus.RESOLVED && existing.status !== TicketStatus.RESOLVED) {
+      void notifications.notifyTicketResolved(ticket);
+    }
 
     return ok(res, ticket, 'Ticket updated');
   },
