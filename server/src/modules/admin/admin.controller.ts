@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { created, ok, paginated, param } from '../../lib/http';
 import { requireUser } from '../../middleware/authenticate';
-import type { PaginationInput } from '../../lib/pagination';
+import { fromRequest as pagination } from '../../lib/pagination';
 import { auditFromRequest } from '../../lib/audit';
 import * as dashboard from './dashboard.service';
 import * as dispatch from './dispatch.service';
@@ -13,11 +13,6 @@ import * as pricing from '../pricing/pricing.service';
 import * as serviceAreas from '../service-areas/service-areas.service';
 import * as timeSlots from '../time-slots/time-slots.service';
 import { prisma } from '../../lib/prisma';
-
-const pagination = (req: Request): PaginationInput => {
-  const query = req.query as unknown as { page: number; limit: number };
-  return { page: query.page, limit: query.limit };
-};
 
 // --- Dashboard --------------------------------------------------------------
 

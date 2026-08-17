@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError, tokens } from '@/lib/api';
@@ -13,6 +14,16 @@ import {
 } from '@/lib/driver';
 import { enqueue, flush, readCachedJobs } from '@/lib/offline';
 import { ProofCapture } from './ProofCapture';
+/**
+ * Loaded on demand. mapbox-gl is ~1.8MB of JavaScript, and a driver opening a
+ * job on mobile data should get the address, the customer's number and the
+ * status buttons immediately rather than waiting on a map library. `ssr: false`
+ * because it needs a real DOM element to mount into.
+ */
+const JobMap = dynamic(() => import('./JobMap').then((m) => m.JobMap), {
+  ssr: false,
+  loading: () => <div className="mt-4 h-64 w-full animate-pulse rounded-card bg-ink-100" />,
+});
 
 /**
  * Job detail and the field workflow (driver.md §3–4, §7).
@@ -144,12 +155,6 @@ export function JobDetail({ assignmentId }: { assignmentId: string }) {
   }
 
   const { booking } = job;
-  const mapsUrl =
-    booking.address.latitude && booking.address.longitude
-      ? `https://www.google.com/maps/dir/?api=1&destination=${booking.address.latitude},${booking.address.longitude}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          `${booking.address.addressLine}, ${booking.address.area}, ${booking.address.city}`,
-        )}`;
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-40 pt-4">
@@ -180,20 +185,19 @@ export function JobDetail({ assignmentId }: { assignmentId: string }) {
           {booking.address.area}, {booking.address.city}
         </p>
 
+        {/* The map sits with the address, above the hand-off button. */}
+        <JobMap
+          latitude={booking.address.latitude}
+          longitude={booking.address.longitude}
+          label={`${booking.address.addressLine}, ${booking.address.area}`}
+        />
+
         {booking.address.instructions ? (
           <p className="mt-3 rounded-lg bg-warn-bg px-3 py-2 text-sm text-[#8a5200]">
             <span aria-hidden="true">📝</span> {booking.address.instructions}
           </p>
         ) : null}
 
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="tap-target mt-4 flex items-center justify-center rounded-xl bg-ink-900 font-semibold text-white"
-        >
-          <span aria-hidden="true">🧭</span>&nbsp; Navigate
-        </a>
       </section>
 
       <section className="mt-4 rounded-card border-2 border-ink-200 bg-white p-5">

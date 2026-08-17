@@ -379,3 +379,34 @@ export const exportBookingsUrl = (from: string, to: string) =>
   `${API_ORIGIN}/api/v1/admin/reports/export/bookings${qs({ from, to, format: 'csv' })}`;
 
 export type { PageMeta };
+
+// --- Reviews ---------------------------------------------------------------
+
+export interface AdminReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  photoUrls: string[];
+  createdAt: string;
+  customer: { id: string; name: string | null; phone: string };
+  booking: {
+    id: string;
+    reference: string;
+    serviceType: string;
+    scheduledDate: string;
+    area: string | null;
+    city: string | null;
+  };
+  attendedBy: { id: string; role: 'DRIVER' | 'CLEANER'; name: string | null } | null;
+}
+
+export interface RatingSummary {
+  average: number;
+  total: number;
+  distribution: Array<{ rating: number; count: number }>;
+}
+
+export const listReviews = (params: { page?: number; minRating?: number; maxRating?: number } = {}) =>
+  api.list<AdminReview[]>(`/reviews/all${qs({ limit: 20, ...params })}`);
+
+export const getRatingSummary = () => api.get<RatingSummary>('/reviews/summary');

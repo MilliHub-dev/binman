@@ -13,6 +13,17 @@ export const paginationSchema = z.object(paginationQuery);
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
 
+/**
+ * Reads the validated page/limit off a request.
+ *
+ * Lived as a private copy inside the admin controller; a second list endpoint
+ * elsewhere would have made it a third copy, each free to drift on defaults.
+ */
+export const fromRequest = (req: { query: unknown }): PaginationInput => {
+  const query = req.query as { page?: number; limit?: number };
+  return { page: query.page ?? 1, limit: query.limit ?? 20 };
+};
+
 export const toSkipTake = ({ page, limit }: PaginationInput) => ({
   skip: (page - 1) * limit,
   take: limit,

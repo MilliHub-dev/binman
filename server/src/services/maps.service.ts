@@ -200,9 +200,22 @@ export const haversineKm = (
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+export interface RouteStep {
+  /** "Turn left onto Aka Road" — Mapbox's own wording. */
+  instruction: string;
+  distanceMetres: number;
+}
+
 export interface RouteResult {
   distanceKm: number;
   durationMinutes: number;
+  /**
+   * GeoJSON LineString coordinates, [longitude, latitude] — GeoJSON order, not
+   * the lat/lng order the rest of this file uses. Present only when the caller
+   * asks for geometry, since it is far larger than the summary.
+   */
+  geometry?: Array<[number, number]>;
+  steps?: RouteStep[];
 }
 
 /**
@@ -212,6 +225,7 @@ export interface RouteResult {
 export const drivingRoute = async (
   from: { latitude: number; longitude: number },
   to: { latitude: number; longitude: number },
+  options: { withGeometry?: boolean } = {},
 ): Promise<RouteResult | null> => {
   if (!enabled()) return null;
 
@@ -220,7 +234,15 @@ export const drivingRoute = async (
     const { data } = await axios.get(
       `https://api.mapbox.com/directions/v5/mapbox/driving/${coords}`,
       {
-        params: { access_token: env.MAPBOX_ACCESS_TOKEN, overview: 'false', alternatives: false },
+        params: {
+          access_token: env.MAPBOX_ACCESS_TOKEN,
+          alternatives: false,
+          // The ETA callers only need distance and duration; asking for the
+          // line and the turn list as well would triple the payload for them.
+          overview: options.withGeometry ? 'full' : 'false',
+          geometries: 'geojson',
+          steps: options.withGeometry ? true : false,
+        },
         timeout: 10_000,
       },
     );
@@ -228,9 +250,22 @@ export const drivingRoute = async (
     const route = data?.routes?.[0];
     if (!route) return null;
 
-    return {
+    const summary: RouteResult = {
       distanceKm: Number((route.distance / 1000).toFixed(2)),
       durationMinutes: Math.round(route.duration / 60),
+    };
+
+    if (!options.withGeometry) return summary;
+
+    return {
+      ...summary,
+      geometry: (route.geometry?.coordinates ?? []) as Array<[number, number]>,
+      steps: (route.legs?.[0]?.steps ?? []).map(
+        (step: { maneuver?: { instruction?: string }; distance?: number }) => ({
+          instruction: step.maneuver?.instruction ?? '',
+          distanceMetres: Math.round(step.distance ?? 0),
+        }),
+      ),
     };
   } catch (err) {
     log.error({ err: axios.isAxiosError(err) ? err.message : err }, 'directions lookup failed');

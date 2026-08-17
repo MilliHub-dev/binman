@@ -38,6 +38,7 @@ const NAV = [
       { href: '/pricing', label: 'Pricing', icon: '₦' },
       { href: '/areas', label: 'Service areas', icon: '◎' },
       { href: '/reports', label: 'Reports', icon: '◫' },
+      { href: '/reviews', label: 'Ratings', icon: '★' },
     ],
   },
 ];

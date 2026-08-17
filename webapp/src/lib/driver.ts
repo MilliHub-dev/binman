@@ -136,3 +136,29 @@ export const currentPosition = (): Promise<{ latitude?: number; longitude?: numb
       { enableHighAccuracy: true, timeout: 4000, maximumAge: 30_000 },
     );
   });
+
+export interface RouteStep {
+  instruction: string;
+  distanceMetres: number;
+}
+
+export interface DrivingRoute {
+  distanceKm: number;
+  durationMinutes: number;
+  /** GeoJSON LineString coordinates: [longitude, latitude]. */
+  geometry: Array<[number, number]>;
+  steps: RouteStep[];
+}
+
+/**
+ * Driving directions, proxied through our API so the Mapbox token stays on the
+ * server and the route is drawn on our own map rather than in someone else's.
+ */
+export const getRoute = (
+  from: { latitude: number; longitude: number },
+  to: { latitude: number; longitude: number },
+) =>
+  api.get<DrivingRoute>(
+    `/geo/route?fromLatitude=${from.latitude}&fromLongitude=${from.longitude}` +
+      `&toLatitude=${to.latitude}&toLongitude=${to.longitude}`,
+  );

@@ -4,7 +4,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
 import { ok } from '../../lib/http';
 import { ServiceUnavailableError } from '../../lib/errors';
-import { geocode, reverseGeocode, staticMap } from '../../services/maps.service';
+import { drivingRoute, geocode, reverseGeocode, staticMap } from '../../services/maps.service';
 import { resolveServiceArea } from '../service-areas/service-areas.service';
 
 /**
@@ -111,3 +111,38 @@ geoRouter.get(
     return res.send(image);
   },
 );
+
+const routeQuery = z.object({
+  fromLatitude: z.coerce.number().min(-90).max(90),
+  fromLongitude: z.coerce.number().min(-180).max(180),
+  toLatitude: z.coerce.number().min(-90).max(90),
+  toLongitude: z.coerce.number().min(-180).max(180),
+});
+
+/**
+ * GET /api/v1/geo/route — driving directions between two points.
+ *
+ * Returns the line to draw and the turn list, so a driver gets directions on
+ * our own map instead of being handed off to someone else's app. Proxied for
+ * the same reason as everything else here: the Mapbox token stays server-side,
+ * and the request is authenticated so it cannot be used as a free directions
+ * API by anyone who finds the URL.
+ */
+geoRouter.get('/route', validate({ query: routeQuery }), async (req: Request, res: Response) => {
+  const q = req.query as unknown as z.infer<typeof routeQuery>;
+
+  const route = await drivingRoute(
+    { latitude: q.fromLatitude, longitude: q.fromLongitude },
+    { latitude: q.toLatitude, longitude: q.toLongitude },
+    { withGeometry: true },
+  );
+
+  if (!route) {
+    throw new ServiceUnavailableError(
+      'We could not work out a route right now.',
+      'DIRECTIONS_UNAVAILABLE',
+    );
+  }
+
+  return ok(res, route);
+});
