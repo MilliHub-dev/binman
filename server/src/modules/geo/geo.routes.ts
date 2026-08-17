@@ -67,11 +67,14 @@ geoRouter.get('/reverse', validate({ query: reverseQuery }), async (req: Request
     );
   }
 
-  // Tell the app up front whether we cover this spot, so it can warn before
-  // the customer fills in the rest of the form.
-  const parts = result.formattedAddress.split(',').map((part) => part.trim());
-  const area = parts[1] ?? '';
-  const city = parts[2] ?? '';
+  /**
+   * Coverage is checked against the structured fields, not against slices of
+   * the formatted string. Mapbox writes "Ikot Ekpene Road, Uyo 52, Akwa Ibom",
+   * so the old positional read took "Uyo 52" as the area and the state as the
+   * city — matched nothing, and told everyone we do not serve them.
+   */
+  const area = result.neighborhood ?? result.street ?? '';
+  const city = result.city ?? '';
   const coverage = area && city ? await resolveServiceArea(area, city) : null;
 
   return ok(res, {

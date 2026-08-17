@@ -181,6 +181,34 @@ describe('2. Addresses and coverage', () => {
     expect(result.body.data.serviceable).toBe(false);
   });
 
+  it('serves a street in a covered city that is not itself a named area', async () => {
+    // The seed names nine roads and estates. Requiring an exact match refused
+    // every other street in Uyo, which is most of them.
+    const result = await api.post(
+      '/api/v1/addresses',
+      {
+        label: 'Home',
+        addressLine: '15 Udo Udoma Avenue',
+        area: 'Udo Udoma Avenue',
+        city: 'Uyo',
+        state: 'Akwa Ibom',
+      },
+      customer.token,
+    );
+    expect(result.status).toBe(201);
+    expect(result.body.data.serviceable).toBe(true);
+  });
+
+  it('matches a named area written in abbreviated form', async () => {
+    const result = await api.post(
+      '/api/v1/addresses',
+      { label: 'Shop', addressLine: '9 Ikot Ekpene Rd', area: 'Ikot Ekpene Rd', city: 'Uyo', state: 'Akwa Ibom' },
+      customer.token,
+    );
+    expect(result.status).toBe(201);
+    expect(result.body.data.serviceable).toBe(true);
+  });
+
   it('will not let one customer read another’s address', async () => {
     const stranger = await signIn('08111000003');
     const result = await api.patch(

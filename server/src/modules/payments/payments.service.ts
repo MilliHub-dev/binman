@@ -15,6 +15,7 @@ import * as flutterwave from '../../services/flutterwave.service';
 import * as notifications from '../../services/notification.service';
 import { transitionBooking } from '../bookings/bookings.service';
 import { paymentQueue } from '../../queues/queues';
+import { paymentVerifyJobId } from '../../queues/jobIds';
 
 const log = createLogger('payments');
 
@@ -111,11 +112,17 @@ export const initiatePayment = async (
     },
   });
 
-  // Safety net: if the webhook never arrives, reconcile by polling.
+  /**
+   * Safety net: if the webhook never arrives, reconcile by polling.
+   *
+   * The id is hyphenated, not colon-separated. BullMQ uses ':' to build its own
+   * Redis keys and rejects a custom id containing one — which threw here and
+   * turned every payment into a 500 immediately after the booking was created.
+   */
   await paymentQueue.add(
     'verify',
     { paymentReference: reference },
-    { delay: 2 * 60_000, jobId: `verify:${reference}` },
+    { delay: 2 * 60_000, jobId: paymentVerifyJobId(reference) },
   );
 
   log.info({ bookingId, reference, amount: booking.totalAmount }, 'payment initiated');

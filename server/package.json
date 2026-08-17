@@ -2,7 +2,7 @@
   "name": "binman-server",
   "version": "0.1.0",
   "private": true,
-  "description": "BinMan waste collection & home services platform \u2014 backend API",
+  "description": "BinMan waste collection & home services platform — backend API",
   "license": "UNLICENSED",
   "type": "commonjs",
   "engines": {
@@ -25,7 +25,8 @@
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:all": "npm run test && npm run test:integration"
+    "test:all": "npm run test && npm run test:integration",
+    "staff:reset": "tsx scripts/reset-staff-password.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -2,6 +2,7 @@ import { Worker, type Job } from 'bullmq';
 import { NotificationChannel, NotificationStatus } from '@prisma/client';
 import { queueConnection } from '../lib/redis';
 import { prisma } from '../lib/prisma';
+import { paymentVerifyJobId } from './jobIds';
 import { createLogger } from '../lib/logger';
 import { sendSms } from '../services/sms.service';
 import { sendEmail } from '../services/email.service';
@@ -178,7 +179,7 @@ const verifyPayment = async (job: Job<PaymentVerificationJob>): Promise<void> =>
   await paymentQueue.add(
     'verify',
     { paymentReference, attempt: attempt + 1 },
-    { delay: attempt * 10 * 60_000, jobId: `verify:${paymentReference}:${attempt + 1}` },
+    { delay: attempt * 10 * 60_000, jobId: paymentVerifyJobId(paymentReference, attempt + 1) },
   );
 };
 

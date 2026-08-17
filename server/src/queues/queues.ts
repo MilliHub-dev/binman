@@ -1,5 +1,6 @@
 import { Queue, type JobsOptions } from 'bullmq';
 import { queueConnection } from '../lib/redis';
+import { SUBSCRIPTION_SWEEP_JOB_ID } from './jobIds';
 
 /**
  * Background work runs off the request path (trsa.md §8): notifications, payment
@@ -68,6 +69,6 @@ export const registerRepeatableJobs = async (): Promise<void> => {
   await subscriptionQueue.add(
     'sweep',
     {},
-    { repeat: { pattern: '0 1 * * *' }, jobId: 'subscription-sweep' },
+    { repeat: { pattern: '0 1 * * *' }, jobId: SUBSCRIPTION_SWEEP_JOB_ID },
   );
 };

@@ -22,7 +22,44 @@ export interface GeocodeResult {
   formattedAddress: string;
   /** Mapbox confidence for the match, when supplied. */
   accuracy: string | null;
+  /**
+   * The address broken into the parts we actually use.
+   *
+   * Splitting `formattedAddress` on commas looked equivalent and was not:
+   * Mapbox writes "Ikot Ekpene Road, Uyo 52, Akwa Ibom, Nigeria", so position 1
+   * is the city fused with a postcode and position 2 is the state. Coverage was
+   * being checked against "Uyo 52", matched nothing, and told every customer we
+   * do not serve them.
+   */
+  street: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  postcode: string | null;
 }
+
+interface MapboxContext {
+  street?: { name?: string };
+  neighborhood?: { name?: string };
+  locality?: { name?: string };
+  place?: { name?: string };
+  region?: { name?: string };
+  postcode?: { name?: string };
+}
+
+/** Pulls the structured pieces out of a Mapbox feature. */
+const partsOf = (properties: { context?: MapboxContext; name?: string } | undefined) => {
+  const c = properties?.context ?? {};
+  return {
+    street: c.street?.name ?? properties?.name ?? null,
+    // Mapbox only returns a neighbourhood in denser mapping; the street is the
+    // best stand-in, and is what BinMan's service areas are actually named for.
+    neighborhood: c.neighborhood?.name ?? c.locality?.name ?? c.street?.name ?? null,
+    city: c.place?.name ?? null,
+    state: c.region?.name ?? null,
+    postcode: c.postcode?.name ?? null,
+  };
+};
 
 const GEOCODE_URL = 'https://api.mapbox.com/search/geocode/v6';
 const STATIC_URL = 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static';
@@ -101,6 +138,7 @@ export const geocode = async (query: string): Promise<GeocodeResult | null> => {
       longitude,
       formattedAddress: feature.properties?.full_address ?? feature.properties?.name ?? query,
       accuracy: feature.properties?.match_code?.confidence ?? null,
+      ...partsOf(feature.properties),
     };
   } catch (err) {
     log.error({ err: axios.isAxiosError(err) ? err.message : err, query }, 'geocode failed');
@@ -134,6 +172,7 @@ export const reverseGeocode = async (
       longitude,
       formattedAddress: feature.properties?.full_address ?? feature.properties?.name ?? '',
       accuracy: feature.properties?.match_code?.confidence ?? null,
+      ...partsOf(feature.properties),
     };
   } catch (err) {
     log.error({ err: axios.isAxiosError(err) ? err.message : err }, 'reverse geocode failed');
