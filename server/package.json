@@ -2,11 +2,11 @@
   "name": "binman-server",
   "version": "0.1.0",
   "private": true,
-  "description": "BinMan waste collection & home services platform — backend API",
+  "description": "BinMan waste collection & home services platform \u2014 backend API",
   "license": "UNLICENSED",
   "type": "commonjs",
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <25"
   },
   "main": "dist/server.js",
   "scripts": {

@@ -5,7 +5,39 @@ changes are needed; the server refuses to boot with `NODE_ENV=production` until
 these are right, which is deliberate — each guard exists because the failure it
 prevents is silent.
 
-## 1. Render (API) — environment variables
+## 1. Render (API) — build and start commands
+
+Set these on the service before anything else. A deploy fails at boot without
+them, and the failure looks unrelated to the cause.
+
+```
+Build command:  npm install --include=dev && npm run build
+Start command:  npm start
+```
+
+Three things make this necessary.
+
+`npm start` runs the compiled server (`node dist/server.js`). The `dev` script
+runs `tsx watch`, and **tsx is a devDependency** — Render prunes those in a
+production install, so a service set to `npm run dev` dies with `tsx: not found`
+after a build that reported success.
+
+`npm run build` is what produces `dist/` in the first place, and it also runs
+`prisma generate`. A build command of bare `npm install` leaves neither, so even
+`npm start` would have nothing to run.
+
+`--include=dev` is required because Render sets `NODE_ENV=production`, which
+tells npm to skip devDependencies — but the build needs TypeScript and the
+Prisma CLI, both of which live there. They are pruned again afterwards, so
+nothing extra ships.
+
+When a migration is part of a release, run it as part of the build:
+
+```
+npm install --include=dev && npx prisma migrate deploy && npm run build
+```
+
+## 2. Render (API) — environment variables
 
 ```
 NODE_ENV=production
@@ -34,7 +66,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 Rotating the JWT secrets signs every existing session out. That is the correct
 behaviour when moving off shared development keys.
 
-## 2. Blockers that configuration alone will not fix
+## 3. Blockers that configuration alone will not fix
 
 **The Sendchamp sender ID must be one they have approved.** The credential is
 valid, but the sender name is not:
@@ -56,14 +88,14 @@ intended before the first customer arrives.
 pair; set the same string in the Flutterwave dashboard's webhook configuration.
 Without it, valid callbacks are rejected and paid bookings never advance.
 
-## 3. Database
+## 4. Database
 
 `prisma migrate deploy` against the production database, then `npm run seed` for
 service areas, time slots and pricing. The seed also creates
 `admin@binman.com` with a published password and `mustChangePassword: true` —
 sign in once and change it before anyone else can.
 
-## 4. Web (Vercel or equivalent)
+## 5. Web (Vercel or equivalent)
 
 Both apps default to the hosted API in code, so they need no variable to work.
 Set `NEXT_PUBLIC_API_URL` only to point somewhere else.
@@ -71,7 +103,7 @@ Set `NEXT_PUBLIC_API_URL` only to point somewhere else.
 Whatever domains they end up on must appear in `CORS_ORIGINS` above, or every
 browser request fails preflight.
 
-## 5. Mobile
+## 6. Mobile
 
 `eas build --profile production --platform android`. The profile already carries
 `EXPO_PUBLIC_API_URL=https://binman-kx0b.onrender.com`.
@@ -81,7 +113,7 @@ square including the wordmark. Launchers mask adaptive icons to a circle and
 trim the outer ~25%, so the wordmark will be cropped. A foreground with just the
 mark and generous padding survives the mask.
 
-## 6. Hosting
+## 7. Hosting
 
 Render's free tier suspends instances when idle, and a cold start runs past 20
 seconds. The mobile client waits 45s to accommodate that, but a customer opening
