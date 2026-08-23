@@ -12,7 +12,7 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.binman.app",
+      "bundleIdentifier": "com.binman.millihub",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "BinMan uses your location to find your pickup address and show you where your collection team is.",
         "NSCameraUsageDescription": "BinMan uses your camera so you can add a profile photo.",
