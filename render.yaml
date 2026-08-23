@@ -15,10 +15,10 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    # --include=dev because Render sets NODE_ENV=production, which tells npm to
-    # skip devDependencies — but TypeScript and the Prisma CLI live there and
-    # the build needs both. They are pruned again afterwards.
-    buildCommand: npm install --include=dev && npx prisma migrate deploy && npm run build
+    # `postinstall` generates the Prisma client and compiles TypeScript, so a
+    # bare install is enough. Add `&& npx prisma migrate deploy` for a release
+    # that carries a migration.
+    buildCommand: npm install
     # The compiled server. `npm run dev` runs tsx, a devDependency, which is not
     # present in a production install: "tsx: not found".
     startCommand: npm start

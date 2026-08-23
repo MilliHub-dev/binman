@@ -13,6 +13,7 @@
     "dev": "tsx watch src/server.ts",
     "dev:worker": "tsx watch src/queues/worker.ts",
     "build": "prisma generate && tsc -p tsconfig.build.json",
+    "postinstall": "prisma generate && tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "start:worker": "node dist/queues/worker.js",
     "typecheck": "tsc --noEmit",
@@ -33,6 +34,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.5",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.34.10",
@@ -50,21 +58,14 @@
     "multer": "^1.4.5-lts.1",
     "pino": "^9.6.0",
     "pino-http": "^10.3.0",
+    "prisma": "^6.2.1",
     "rate-limit-redis": "^4.2.0",
+    "typescript": "^5.7.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/compression": "^1.7.5",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.10.5",
     "pino-pretty": "^13.0.0",
-    "prisma": "^6.2.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
     "vitest": "^2.1.8"
   }
 }

@@ -11,30 +11,26 @@ Set these on the service before anything else. A deploy fails at boot without
 them, and the failure looks unrelated to the cause.
 
 ```
-Build command:  npm install --include=dev && npm run build
+Build command:  npm install
 Start command:  npm start
 ```
 
-Three things make this necessary.
+Those are Render's defaults, so a service created by hand needs no change to the
+build command. `npm install` triggers a `postinstall` that generates the Prisma
+client and compiles TypeScript, so `dist/` exists by the time the service
+starts. TypeScript, the Prisma CLI and the `@types` packages sit in
+`dependencies` rather than `devDependencies` precisely so that works: a
+production install skips devDependencies, and the build needs all three.
 
-`npm start` runs the compiled server (`node dist/server.js`). The `dev` script
-runs `tsx watch`, and **tsx is a devDependency** — Render prunes those in a
-production install, so a service set to `npm run dev` dies with `tsx: not found`
-after a build that reported success.
+`npm start` runs the compiled output. It must not be `npm run dev`, which runs
+tsx — a devDependency, absent in production: `tsx: not found`.
 
-`npm run build` is what produces `dist/` in the first place, and it also runs
-`prisma generate`. A build command of bare `npm install` leaves neither, so even
-`npm start` would have nothing to run.
-
-`--include=dev` is required because Render sets `NODE_ENV=production`, which
-tells npm to skip devDependencies — but the build needs TypeScript and the
-Prisma CLI, both of which live there. They are pruned again afterwards, so
-nothing extra ships.
-
-When a migration is part of a release, run it as part of the build:
+**Migrations are the one thing `postinstall` does not do**, because a build
+should not alter a database on its own. When a release carries one, set the
+build command for that deploy:
 
 ```
-npm install --include=dev && npx prisma migrate deploy && npm run build
+npm install && npx prisma migrate deploy
 ```
 
 ## 2. Render (API) — environment variables
