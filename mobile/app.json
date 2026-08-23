@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./img/logo.png",
     "scheme": "binman",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -22,7 +22,7 @@
     "android": {
       "package": "com.binman.app",
       "adaptiveIcon": {
-        "foregroundImage": "./img/logo.png",
+        "foregroundImage": "./img/adaptive-foreground.png",
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
@@ -65,7 +65,7 @@
       "expo-status-bar"
     ],
     "extra": {
-      "apiUrl": "http://localhost:4000",
+      "apiUrl": "https://binman-kx0b.onrender.com",
       "eas": {
         "projectId": "1e0d22a9-10de-4153-93c2-3396ff925e97"
       }
