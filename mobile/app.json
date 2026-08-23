@@ -20,7 +20,7 @@
       }
     },
     "android": {
-      "package": "com.binman.app",
+      "package": "com.binman.millihub",
       "adaptiveIcon": {
         "foregroundImage": "./img/adaptive-foreground.png",
         "backgroundColor": "#FFFFFF"
