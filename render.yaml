@@ -1,0 +1,50 @@
+# Render Blueprint.
+#
+# The build and start commands live here rather than only in a dashboard field,
+# because getting either wrong produces a deploy that reports "Build successful"
+# and then dies at boot — the two failures look unrelated to each other and to
+# the cause.
+#
+# Connect this file under Blueprints in Render to have it manage the service.
+# An existing service created by hand keeps using its dashboard settings and
+# ignores this file, so those must be changed there once; after that this keeps
+# them from drifting.
+services:
+  - type: web
+    name: binman-api
+    runtime: node
+    plan: free
+    rootDir: server
+    # --include=dev because Render sets NODE_ENV=production, which tells npm to
+    # skip devDependencies — but TypeScript and the Prisma CLI live there and
+    # the build needs both. They are pruned again afterwards.
+    buildCommand: npm install --include=dev && npx prisma migrate deploy && npm run build
+    # The compiled server. `npm run dev` runs tsx, a devDependency, which is not
+    # present in a production install: "tsx: not found".
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OTP_DEBUG_RETURN
+        value: "false"
+      # Everything else — secrets, database and provider credentials — is set in
+      # the dashboard and deliberately not committed.
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: FLUTTERWAVE_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_WEBHOOK_SECRET_HASH
+        sync: false
+      - key: SENDCHAMP_PUBLIC_KEY
+        sync: false
+      - key: MAPBOX_ACCESS_TOKEN
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
