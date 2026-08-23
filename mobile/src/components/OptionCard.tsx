@@ -1,14 +1,19 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { colors, radius, spacing, useStyles, type Colors } from '../theme';
+import { radius, spacing, useStyles, useTheme, type Colors } from '../theme';
 import { Card } from './Card';
+import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 interface Props {
   title: string;
   description?: string;
-  /** Emoji rather than an icon font — ui.md uses them throughout. */
-  emoji?: string;
+  /**
+   * A drawn icon, not an emoji. Emoji render in each handset vendor's house
+   * style, so the same choice list looked like a different product on a Samsung
+   * than on a Pixel, and they cannot take the brand colour.
+   */
+  icon?: IconName;
   price?: string;
   selected: boolean;
   disabled?: boolean;
@@ -25,7 +30,7 @@ interface Props {
 export const OptionCard: React.FC<Props> = ({
   title,
   description,
-  emoji,
+  icon,
   price,
   selected,
   disabled = false,
@@ -34,6 +39,7 @@ export const OptionCard: React.FC<Props> = ({
   testID,
 }) => {
   const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
   return (
   <Card
     testID={testID}
@@ -43,7 +49,11 @@ export const OptionCard: React.FC<Props> = ({
     style={styles.card}
   >
     <View style={styles.row}>
-      {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
+      {icon ? (
+        <View style={styles.icon}>
+          <Icon name={icon} size={20} color={selected ? colors.brand : colors.textSecondary} />
+        </View>
+      ) : null}
 
       <View style={styles.body}>
         <Text variant="bodyMedium">{title}</Text>
@@ -67,7 +77,7 @@ export const OptionCard: React.FC<Props> = ({
         ) : null}
         {/* A tick, not just a colour change — selection must survive greyscale. */}
         <View style={[styles.radio, selected && styles.radioSelected]}>
-          {selected ? <Text style={styles.tick}>✓</Text> : null}
+          {selected ? <Icon name="check" size={13} color={colors.textInverse} strokeWidth={3} /> : null}
         </View>
       </View>
     </View>
@@ -78,7 +88,7 @@ export const OptionCard: React.FC<Props> = ({
 const makeStyles = (c: Colors) => StyleSheet.create({
   card: { marginBottom: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center' },
-  emoji: { fontSize: 26, marginRight: spacing.md },
+  icon: { width: 34, alignItems: 'center', marginRight: spacing.md },
   body: { flex: 1 },
   description: { marginTop: spacing.xxs },
   trailing: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -92,5 +102,4 @@ const makeStyles = (c: Colors) => StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: { borderColor: c.brand, backgroundColor: c.brand },
-  tick: { color: c.textInverse, fontSize: 13, fontWeight: '700', lineHeight: 16 },
 });

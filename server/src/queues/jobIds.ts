@@ -37,5 +37,8 @@ export const paymentVerifyJobId = (reference: string, attempt = 1): string =>
  */
 export const reviewRequestJobId = (bookingId: string): string => `review-${bookingId}`;
 
+/** Releases a time slot when a booking is never paid for. One per booking. */
+export const expireUnpaidJobId = (bookingId: string): string => `expire-${bookingId}`;
+
 /** The nightly subscription sweep. */
 export const SUBSCRIPTION_SWEEP_JOB_ID = 'subscription-sweep';

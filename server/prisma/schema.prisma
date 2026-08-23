@@ -195,6 +195,30 @@ enum NotificationStatus {
   FAILED
 }
 
+/// A reply on a support ticket, from either side.
+///
+/// Support was one-way before this: a customer could describe a problem and
+/// staff could change its status, but neither could say anything back, so the
+/// only way to answer was to ring the number on file and hope it was picked up.
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String   @map("ticket_id")
+  /// Who wrote it. Null only if the author's account is later deleted.
+  authorId  String?  @map("author_id")
+  /// Denormalised so a reply still reads correctly after an account goes.
+  fromStaff Boolean  @map("from_staff")
+  body      String
+  /// When the other side saw it, for an unread marker.
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User?                @relation("TicketMessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
+}
+
 enum TicketStatus {
   OPEN
   IN_PROGRESS
@@ -263,6 +287,7 @@ model User {
   driver            Driver?
   supportTickets    SupportTicket[]  @relation("TicketOwner")
   assignedTickets   SupportTicket[]  @relation("TicketAssignee")
+  ticketMessages    TicketMessage[]  @relation("TicketMessageAuthor")
   assignmentsMade   BookingAssignment[] @relation("AssignedBy")
   cleaningJobs      BookingAssignment[] @relation("AssignedCleaner")
   statusChanges     BookingStatusHistory[]
@@ -784,6 +809,11 @@ model Review {
   userId    String   @map("user_id")
   rating    Int
   comment   String?
+  /// Quick tags from the rating screen ("Arrived late", "Left a mess"). Kept as
+  /// a column rather than folded into `comment` so operations can actually
+  /// count them — "how many late arrivals this month" should be a query, not a
+  /// text scan.
+  tags      String[] @default([])
   photoUrls String[] @map("photo_urls")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -811,6 +841,7 @@ model SupportTicket {
   user     User     @relation("TicketOwner", fields: [userId], references: [id], onDelete: Cascade)
   assignee User?    @relation("TicketAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
   booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  messages TicketMessage[]
 
   @@index([status, priority])
   @@map("support_tickets")

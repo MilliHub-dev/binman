@@ -47,7 +47,16 @@ export const getDashboard = async () => {
       _sum: { amount: true },
     }),
     prisma.booking.count({ where: { serviceType: ServiceType.CLEANING, scheduledDate: today } }),
-    prisma.booking.count({ where: { status: BookingStatus.PENDING_ASSIGNMENT } }),
+    /**
+     * Scoped to the same day the dispatch board opens on.
+     *
+     * This counted every date, while the board filters to one — so a booking
+     * scheduled for tomorrow made the badge read "1" over a board showing
+     * nothing, which looks like a broken screen rather than work on another day.
+     */
+    prisma.booking.count({
+      where: { scheduledDate: today, status: BookingStatus.PENDING_ASSIGNMENT },
+    }),
   ]);
 
   const todayTotal = todayRevenue._sum.amount ?? 0;

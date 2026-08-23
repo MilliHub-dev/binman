@@ -7,6 +7,23 @@ import React from 'react';
  * and the module count from 1,527 to 3,301, for a handful of glyphs. These paths cost
  * only what is used.
  */
+import Brush from 'lucide-react-native/icons/brush';
+import Building from 'lucide-react-native/icons/building';
+import Building2 from 'lucide-react-native/icons/building-2';
+import CalendarDays from 'lucide-react-native/icons/calendar-days';
+import Inbox from 'lucide-react-native/icons/inbox';
+import Leaf from 'lucide-react-native/icons/leaf';
+import Lock from 'lucide-react-native/icons/lock';
+import Mail from 'lucide-react-native/icons/mail';
+import Package from 'lucide-react-native/icons/package';
+import PartyPopper from 'lucide-react-native/icons/party-popper';
+import Phone from 'lucide-react-native/icons/phone';
+import Recycle from 'lucide-react-native/icons/recycle';
+import SprayCan from 'lucide-react-native/icons/spray-can';
+import Store from 'lucide-react-native/icons/store';
+import Truck from 'lucide-react-native/icons/truck';
+import Utensils from 'lucide-react-native/icons/utensils';
+import Warehouse from 'lucide-react-native/icons/warehouse';
 import Bell from 'lucide-react-native/icons/bell';
 import Star from 'lucide-react-native/icons/star';
 import CalendarClock from 'lucide-react-native/icons/calendar-clock';
@@ -69,6 +86,23 @@ const ICONS = {
   terms: FileText,
   privacy: Shield,
   plus: Plus,
+  apartment: Building2,
+  office: Building,
+  shop: Store,
+  warehouse: Warehouse,
+  parcel: Package,
+  celebrate: PartyPopper,
+  truck: Truck,
+  calendar: CalendarDays,
+  lock: Lock,
+  inbox: Inbox,
+  phone: Phone,
+  mail: Mail,
+  recycle: Recycle,
+  leaf: Leaf,
+  food: Utensils,
+  deepClean: SprayCan,
+  brush: Brush,
   check: Check,
   close: X,
   alert: TriangleAlert,

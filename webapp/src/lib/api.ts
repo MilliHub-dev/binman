@@ -46,6 +46,28 @@ export const tokens = {
   },
 };
 
+/**
+ * The message a person should actually read.
+ *
+ * A 422 arrives as `{ message: "Validation failed", error: { details: [...] } }`
+ * — the envelope says nothing useful while the details say exactly what is
+ * wrong. Showing the envelope turned "Enter a valid email address" into
+ * "Validation failed", which is how a mistyped email became an unexplained 422.
+ */
+const readableMessage = (payload: {
+  message?: string;
+  error?: { details?: unknown };
+}): string => {
+  const details = payload.error?.details;
+  if (Array.isArray(details) && details.length > 0) {
+    const messages = details
+      .map((d) => (d && typeof d === 'object' ? (d as { message?: string }).message : undefined))
+      .filter((m): m is string => Boolean(m));
+    if (messages.length > 0) return messages.join('. ');
+  }
+  return payload.message ?? 'Something went wrong';
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -140,7 +162,7 @@ const send = async <T>(path: string, options: Options, token?: string): Promise<
 
     if (!response.ok || payload.success === false) {
       throw new ApiError(
-        payload.message ?? 'Something went wrong',
+        readableMessage(payload),
         response.status,
         payload.error?.code ?? 'UNKNOWN',
         payload.error?.details,

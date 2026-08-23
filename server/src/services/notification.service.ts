@@ -212,6 +212,28 @@ export const notifyTicketResolved = (ticket: {
     metadata: { ticketNumber: ticket.ticketNumber },
   });
 
+/**
+ * A member of staff has answered a support ticket.
+ *
+ * The preview is trimmed rather than sent whole: a notification is a nudge to
+ * open the thread, and a long reply would be truncated by the operating system
+ * mid-sentence anyway.
+ */
+export const notifyTicketReply = (input: {
+  userId: string;
+  ticketNumber: string;
+  preview: string;
+}) =>
+  notify({
+    userId: input.userId,
+    type: 'TICKET_REPLY',
+    title: 'Support replied',
+    message:
+      input.preview.length > 120 ? `${input.preview.slice(0, 117).trimEnd()}…` : input.preview,
+    channels: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
+    metadata: { ticketNumber: input.ticketNumber },
+  });
+
 export const notifyBookingCancelled = (booking: BookingLike, reason?: string | null) =>
   notify({
     userId: booking.userId,

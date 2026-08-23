@@ -10,7 +10,7 @@ import { buildMeta, toSkipTake, type PaginationInput } from '../../lib/paginatio
 export const createReview = async (
   userId: string,
   bookingId: string,
-  input: { rating: number; comment?: string; photoUrls?: string[] },
+  input: { rating: number; comment?: string; tags?: string[]; photoUrls?: string[] },
 ) => {
   const booking = await prisma.booking.findFirst({
     where: { id: bookingId, userId },
@@ -31,6 +31,7 @@ export const createReview = async (
       userId,
       rating: input.rating,
       comment: input.comment ?? null,
+      tags: input.tags ?? [],
       photoUrls: input.photoUrls ?? [],
     },
   });
@@ -124,6 +125,7 @@ export const listReviews = async (
       id: review.id,
       rating: review.rating,
       comment: review.comment,
+      tags: review.tags,
       photoUrls: review.photoUrls,
       createdAt: review.createdAt,
       customer: {

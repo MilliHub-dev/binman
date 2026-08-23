@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, radius, spacing, useStyles, type Colors } from '../theme';
+import { radius, spacing, useStyles, useTheme, type Colors } from '../theme';
 import { Card } from './Card';
+import { Icon } from './Icon';
 import { Text } from './Text';
 import type { Address } from '../api/types';
 
@@ -21,6 +22,7 @@ export const AddressCard: React.FC<Props> = ({
   onEdit,
   selectable = true,
 }) => {
+  const { colors } = useTheme();
   const styles = useStyles(makeStyles);
   return (
   <Card
@@ -32,7 +34,11 @@ export const AddressCard: React.FC<Props> = ({
     style={styles.card}
   >
     <View style={styles.row}>
-      <Text style={styles.emoji}>{address.label.toLowerCase().includes('office') ? '🏢' : '🏠'}</Text>
+      <Icon
+        name={address.label.toLowerCase().includes('office') ? 'office' : 'home'}
+        size={18}
+        color={colors.textSecondary}
+      />
 
       <View style={styles.body}>
         <View style={styles.titleRow}>
@@ -68,7 +74,7 @@ export const AddressCard: React.FC<Props> = ({
         </Pressable>
       ) : selectable && selected ? (
         <View style={styles.tick}>
-          <Text style={styles.tickMark}>✓</Text>
+          <Icon name="check" size={12} color={colors.textInverse} strokeWidth={3} />
         </View>
       ) : null}
     </View>

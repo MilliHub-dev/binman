@@ -16,6 +16,8 @@ import { assertSlotBookable, OCCUPYING_STATUSES } from '../time-slots/time-slots
 import { assertServiceable } from '../service-areas/service-areas.service';
 import { quote } from '../pricing/pricing.service';
 import { isStaff } from '../../middleware/authorize';
+import { bookingQueue } from '../../queues/queues';
+import { expireUnpaidJobId } from '../../queues/jobIds';
 import * as notifications from '../../services/notification.service';
 import { bookingInclude, toBookingView, type BookingView } from './booking.mapper';
 import { assertTransition, CUSTOMER_CANCELLABLE, ACTIVE_STATUSES } from './booking.status';
@@ -138,6 +140,29 @@ export const createBooking = async (
   );
 
   log.info({ bookingId: booking.id, reference: booking.reference, userId }, 'booking created');
+
+  /**
+   * Release the slot if nobody pays.
+   *
+   * PENDING_PAYMENT counts towards a time slot's capacity, and the worker has
+   * always known how to expire an unpaid booking — but nothing ever scheduled
+   * the job, so every abandoned checkout held its slot permanently. A popular
+   * morning window fills with ghosts and real customers are told it is full.
+   *
+   * Fire and forget: a queue that is briefly unavailable must not stop someone
+   * booking, and the job is keyed to the booking so a retry cannot double up.
+   */
+  void bookingQueue
+    .add(
+      'expire-unpaid',
+      { bookingId: booking.id, kind: 'EXPIRE_UNPAID' },
+      {
+        // A grace margin past the window, so the job never runs a moment early.
+        delay: (env.PAYMENT_EXPIRY_MINUTES + 1) * 60_000,
+        jobId: expireUnpaidJobId(booking.id),
+      },
+    )
+    .catch((err) => log.error({ err, bookingId: booking.id }, 'could not schedule unpaid expiry'));
 
   return loadView(booking.id);
 };

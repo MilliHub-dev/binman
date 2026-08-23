@@ -3,7 +3,7 @@ import { Linking, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Button, Card, ErrorState, LoadingState, Screen, Text } from '../../components';
+import { Icon, Button, Card, ErrorState, LoadingState, Screen, Text } from '../../components';
 import { colors, radius, spacing, useStyles, type Colors } from '../../theme';
 import { useBooking } from '../../api/queries';
 import type { BookingStatus } from '../../api/types';
@@ -85,7 +85,7 @@ export const TrackPickupScreen: React.FC = () => {
               <Text variant="bodyMedium">{driver.fullName ?? 'Your driver'}</Text>
               {booking.assignment?.truck ? (
                 <Text variant="caption" tone="secondary">
-                  🚛 {booking.assignment.truck.truckNumber}
+                  {booking.assignment.truck.truckNumber}
                 </Text>
               ) : null}
             </View>
@@ -121,7 +121,7 @@ export const TrackPickupScreen: React.FC = () => {
                     current && styles.markerCurrent,
                   ]}
                 >
-                  {done ? <Text style={styles.markerTick}>✓</Text> : null}
+                  {done ? <Icon name="check" size={11} color={colors.textInverse} strokeWidth={3} /> : null}
                 </View>
                 {!isLast ? <View style={[styles.connector, done && styles.connectorDone]} /> : null}
               </View>

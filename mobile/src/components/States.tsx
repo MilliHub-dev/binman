@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { radius, spacing, useStyles, type Colors, useTheme } from '../theme';
 import { Text } from './Text';
+import { Icon, type IconName } from './Icon';
 import { Button } from './Button';
 import { ApiError } from '../api/client';
 
@@ -78,7 +79,8 @@ export const ErrorState: React.FC<ErrorProps> = ({ error, onRetry, title }) => {
 };
 
 interface EmptyProps {
-  emoji?: string;
+  /** A drawn icon rather than an emoji — see the note in Icon.tsx. */
+  icon?: IconName;
   title: string;
   message?: string;
   actionLabel?: string;
@@ -86,16 +88,19 @@ interface EmptyProps {
 }
 
 export const EmptyState: React.FC<EmptyProps> = ({
-  emoji = '📭',
+  icon = 'inbox',
   title,
   message,
   actionLabel,
   onAction,
 }) => {
+  const { colors } = useTheme();
   const styles = useStyles(makeStyles);
   return (
   <View style={styles.centered}>
-    <Text style={styles.emoji}>{emoji}</Text>
+    <View style={styles.emptyIcon}>
+      <Icon name={icon} size={26} color={colors.textMuted} />
+    </View>
     <Text variant="h3" center style={styles.spaced}>
       {title}
     </Text>
@@ -143,7 +148,14 @@ const makeStyles = (c: Colors) => StyleSheet.create({
   },
   spaced: { marginTop: spacing.base },
   message: { marginTop: spacing.sm, marginBottom: spacing.lg },
-  emoji: { fontSize: 44 },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: c.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconCircle: {
     width: 56,
     height: 56,

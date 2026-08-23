@@ -307,6 +307,14 @@ export interface Notification {
   metadata: Record<string, unknown> | null;
 }
 
+export interface TicketMessage {
+  id: string;
+  fromStaff: boolean;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
 export interface SupportTicket {
   id: string;
   ticketNumber: string;

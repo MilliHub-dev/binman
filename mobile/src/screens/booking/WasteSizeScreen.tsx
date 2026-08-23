@@ -69,7 +69,7 @@ export const WasteSizeScreen: React.FC = () => {
           key={size.value}
           title={size.label}
           description={size.description}
-          emoji="🗑️"
+          icon="waste"
           {...(priceFor(size.value) ? { price: priceFor(size.value) } : {})}
           selected={selected === size.value}
           onPress={() => setSize(size.value)}

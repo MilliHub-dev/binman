@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthBackground, Button, Screen, Text } from '../../components';
+import { Icon, AuthBackground, Button, Screen, Text } from '../../components';
 import { radius, shadow, spacing, typography, useLayout, useStyles, type Colors, useTheme } from '../../theme';
 import { formatPhoneInput } from '../../utils/format';
 import * as authApi from '../../api/auth';
@@ -134,7 +134,7 @@ export const PhoneScreen: React.FC = () => {
             {/* Confirms the number is complete without waiting for a tap. */}
             {isValid && !error ? (
               <View style={styles.check}>
-                <Text style={styles.checkMark}>✓</Text>
+                <Icon name="check" size={13} color={colors.textInverse} strokeWidth={3} />
               </View>
             ) : null}
           </View>
@@ -145,7 +145,7 @@ export const PhoneScreen: React.FC = () => {
             </Text>
           ) : (
             <View style={styles.reassurance}>
-              <Text style={styles.lock}>🔒</Text>
+              <Icon name="lock" size={13} color={colors.textMuted} />
               <Text variant="caption" tone="muted" style={styles.reassuranceText}>
                 We only use your number to reach you about pickups. It is never shared.
               </Text>

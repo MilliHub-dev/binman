@@ -3,18 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import {
-  Button,
-  Card,
-  ConfirmModal,
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  Screen,
-  StatusBadge,
-  Text,
-} from '../../components';
-import { spacing } from '../../theme';
+import { Icon, Button, Card, ConfirmModal, EmptyState, ErrorState, LoadingState, Screen, StatusBadge, Text } from '../../components';
+import { spacing, useTheme } from '../../theme';
 import { formatSlotTime, humanise } from '../../utils/format';
 import { useCancelSubscription, useSubscriptions, useUpdateSubscription } from '../../api/queries';
 import type { ProfileStackParamList } from '../../navigation/types';
@@ -28,6 +18,7 @@ export const SubscriptionsScreen: React.FC = () => {
   const update = useUpdateSubscription();
   const cancel = useCancelSubscription();
   const [cancelling, setCancelling] = useState<string>();
+  const { colors } = useTheme();
 
   if (isLoading) return <Screen><LoadingState /></Screen>;
   if (error) return <Screen><ErrorState error={error} onRetry={refetch} /></Screen>;
@@ -46,7 +37,7 @@ export const SubscriptionsScreen: React.FC = () => {
     >
       {subscriptions.length === 0 ? (
         <EmptyState
-          emoji="🔁"
+          icon="repeat"
           title="No subscriptions yet"
           message="Set up weekly collection and never think about it again."
         />
@@ -64,7 +55,10 @@ export const SubscriptionsScreen: React.FC = () => {
               {subscription.daysOfWeek.map((d) => DAY_NAMES[d]).join(', ')} ·{' '}
               {formatSlotTime(subscription.timeSlot.startTime)}
             </Text>
-            <Text tone="secondary">📍 {subscription.address.area}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Icon name="pin" size={13} color={colors.textMuted} />
+              <Text tone="secondary">{subscription.address.area}</Text>
+            </View>
             <Text variant="bodyMedium" style={styles.price}>
               {subscription.amountFormatted} per pickup
             </Text>

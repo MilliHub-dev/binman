@@ -40,7 +40,7 @@ export const AddressesScreen: React.FC = () => {
     >
       {addresses.length === 0 ? (
         <EmptyState
-          emoji="📍"
+          icon="pin"
           title="No saved addresses"
           message="Add an address so we know where to collect from."
         />

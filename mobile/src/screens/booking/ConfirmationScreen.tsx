@@ -3,8 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CommonActions, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 
-import { Button, Card, Screen, Text } from '../../components';
-import { colors, gradients, spacing, useStyles, type Colors } from '../../theme';
+import { Icon, Button, Card, Screen, Text } from '../../components';
+import { colors, gradients, spacing, useStyles, type Colors, useTheme } from '../../theme';
 import { formatLongDate } from '../../utils/format';
 import { useBooking } from '../../api/queries';
 import type { BookingStackParamList } from '../../navigation/types';
@@ -52,10 +52,10 @@ export const ConfirmationScreen: React.FC = () => {
           end={{ x: 1, y: 1 }}
           style={styles.tickCircle}
         >
-          <Text style={styles.tick}>✓</Text>
+          <Icon name="check" size={34} color={colors.textInverse} strokeWidth={3} />
         </LinearGradient>
         <Text variant="h1" center style={styles.title}>
-          Pickup booked! 🎉
+          Pickup booked
         </Text>
         <Text tone="secondary" center>
           Your waste collection has been scheduled successfully.
@@ -76,7 +76,7 @@ export const ConfirmationScreen: React.FC = () => {
           <Text variant="bodyMedium">{formatLongDate(booking.scheduledDate)}</Text>
           <Text tone="secondary">{booking.timeSlot.window}</Text>
           <Text tone="secondary" style={styles.address}>
-            📍 {booking.address.area}, {booking.address.city}
+            {booking.address.area}, {booking.address.city}
           </Text>
         </Card>
       ) : null}

@@ -9,7 +9,8 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from '@/lib/admin';
-import { Card, EmptyRow, ErrorNote, PageHeader, Skeleton, TableShell, Td, Th } from '@/components/ui';
+import { EmptyRow, ErrorNote, PageHeader, Skeleton, TableShell, Td, Th } from '@/components/ui';
+import { TicketThread } from './TicketThread';
 
 /**
  * The support queue (admin.md §12).
@@ -50,6 +51,8 @@ const age = (iso: string) => {
 
 export default function SupportPage() {
   const [tab, setTab] = useState<'open' | TicketStatus>('open');
+  /** Only one thread open at a time — a queue of expanded rows is unreadable. */
+  const [openThread, setOpenThread] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const active = STATUS_TABS.find((t) => t.key === tab)!;
@@ -141,6 +144,16 @@ export default function SupportPage() {
                     <p className="mt-0.5 max-w-md whitespace-pre-wrap text-sm text-ink-600">
                       {ticket.description}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenThread((current) => (current === ticket.id ? null : ticket.id))
+                      }
+                      className="mt-2 text-sm font-semibold text-brand"
+                    >
+                      {openThread === ticket.id ? 'Hide conversation' : 'Reply'}
+                    </button>
+                    {openThread === ticket.id ? <TicketThread ticketId={ticket.id} /> : null}
                   </Td>
                   <Td>
                     <select
@@ -206,12 +219,6 @@ export default function SupportPage() {
         </TableShell>
       </div>
 
-      <Card className="mt-4">
-        <p className="text-sm text-ink-600">
-          There is no in-app reply thread yet — call or message the customer on the number above,
-          then set the status here. Marking a ticket resolved notifies them in the app.
-        </p>
-      </Card>
     </div>
   );
 }

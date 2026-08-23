@@ -386,6 +386,7 @@ export interface AdminReview {
   id: string;
   rating: number;
   comment: string | null;
+  tags: string[];
   photoUrls: string[];
   createdAt: string;
   customer: { id: string; name: string | null; phone: string };
@@ -437,3 +438,17 @@ export const updateTicket = (
   id: string,
   input: { status?: TicketStatus; priority?: TicketPriority },
 ) => api.patch<SupportTicket>(`/support/admin/tickets/${id}`, input);
+
+export interface TicketMessage {
+  id: string;
+  fromStaff: boolean;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export const listTicketMessages = (ticketId: string) =>
+  api.get<TicketMessage[]>(`/support/admin/tickets/${ticketId}/messages`);
+
+export const replyToTicket = (ticketId: string, body: string) =>
+  api.post<TicketMessage>(`/support/admin/tickets/${ticketId}/messages`, { body });

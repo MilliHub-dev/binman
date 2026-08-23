@@ -39,17 +39,20 @@ const Stars = ({ rating }: { rating: number }) => (
 );
 
 /**
- * The rating screen folds its quick tags into the first line of the comment,
- * separated from any free text by a blank line. Splitting them back out here
- * keeps the tags scannable instead of buried in a paragraph.
+ * Tags arrive in their own field now. Older reviews were written before that
+ * column existed and carry them on the comment's first line, separated from any
+ * free text by a blank line — so those are unpicked here rather than shown as
+ * one run-on paragraph.
  */
-const splitComment = (comment: string | null) => {
-  if (!comment) return { tags: [] as string[], text: '' };
-  const [head, ...rest] = comment.split('\n\n');
-  const looksLikeTags = head.includes(' · ') || (rest.length > 0 && head.length < 80);
+const splitComment = (review: { comment: string | null; tags: string[] }) => {
+  if (review.tags.length > 0) return { tags: review.tags, text: review.comment ?? '' };
+  if (!review.comment) return { tags: [] as string[], text: '' };
+
+  const [head, ...rest] = review.comment.split('\n\n');
+  const looksLikeTags = head.includes(' · ') && rest.length > 0;
   return looksLikeTags
     ? { tags: head.split(' · ').map((t) => t.trim()).filter(Boolean), text: rest.join('\n\n') }
-    : { tags: [], text: comment };
+    : { tags: [], text: review.comment };
 };
 
 export default function ReviewsPage() {
@@ -167,7 +170,7 @@ export default function ReviewsPage() {
             />
           ) : (
             items.map((review) => {
-              const { tags, text } = splitComment(review.comment);
+              const { tags, text } = splitComment(review);
               return (
                 <tr key={review.id} className="align-top">
                   <Td>

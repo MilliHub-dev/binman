@@ -11,6 +11,8 @@ const createReviewSchema = z.object({
   bookingId: z.string().min(1),
   rating: z.number().int().min(1, 'Rating must be 1–5').max(5, 'Rating must be 1–5'),
   comment: z.string().trim().max(1000).optional(),
+  /** Short, pre-set labels from the rating screen — not free text. */
+  tags: z.array(z.string().trim().min(1).max(40)).max(8).optional(),
   photoUrls: z.array(z.string().url()).max(5).optional(),
 });
 

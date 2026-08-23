@@ -81,7 +81,7 @@ export const BookingsScreen: React.FC = () => {
           )}
           ListEmptyComponent={
             <EmptyState
-              emoji={scope === 'completed' ? '📗' : '🗓️'}
+              icon={scope === 'completed' ? 'check' : 'calendar'}
               title={scope === 'completed' ? 'Nothing completed yet' : 'No bookings yet'}
               message={
                 scope === 'active'

@@ -51,7 +51,7 @@ export const SelectAddressScreen: React.FC = () => {
 
       {addresses.length === 0 ? (
         <EmptyState
-          emoji="📍"
+          icon="pin"
           title="No addresses yet"
           message="Add the address where we should collect your waste."
           actionLabel="+ Add Address"

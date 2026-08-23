@@ -216,6 +216,25 @@ export const useMarkAllRead = () => {
   });
 };
 
+export const useTicketMessages = (ticketId: string | null) =>
+  useQuery({
+    queryKey: ['ticket-messages', ticketId],
+    queryFn: () => endpoints.listTicketMessages(ticketId!),
+    enabled: Boolean(ticketId),
+  });
+
+export const useReplyToTicket = (ticketId: string) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => endpoints.replyToTicket(ticketId, body),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['ticket-messages', ticketId] });
+      // Replying to a resolved ticket reopens it, so the list changes too.
+      void client.invalidateQueries({ queryKey: keys.tickets });
+    },
+  });
+};
+
 export const useCreateTicket = () => {
   const client = useQueryClient();
   return useMutation({

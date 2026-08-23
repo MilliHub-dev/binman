@@ -30,6 +30,10 @@ const ticketsQuery = z.object({
   priority: z.nativeEnum(TicketPriority).optional(),
 });
 
+const replySchema = z.object({
+  body: z.string().trim().min(1, 'Write a message').max(2000),
+});
+
 const updateTicketSchema = z
   .object({
     status: z.nativeEnum(TicketStatus).optional(),
@@ -86,6 +90,67 @@ supportRouter.get('/tickets', async (req: Request, res: Response) => {
     }),
   );
 });
+
+/**
+ * GET /api/v1/support/tickets/:id/messages — the conversation on one ticket.
+ *
+ * Scoped to the owner. A ticket id is a cuid, not a secret, so the query is
+ * filtered by user rather than trusting the id alone.
+ */
+supportRouter.get('/tickets/:id/messages', async (req: Request, res: Response) => {
+  const user = requireUser(req);
+  const id = param(req, 'id');
+
+  const ticket = await prisma.supportTicket.findFirst({
+    where: { id, userId: user.id },
+    select: { id: true },
+  });
+  if (!ticket) throw new NotFoundError('Ticket');
+
+  const messages = await prisma.ticketMessage.findMany({
+    where: { ticketId: id },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  // Anything staff wrote is now seen.
+  await prisma.ticketMessage.updateMany({
+    where: { ticketId: id, fromStaff: true, readAt: null },
+    data: { readAt: new Date() },
+  });
+
+  return ok(res, messages);
+});
+
+/** POST /api/v1/support/tickets/:id/messages — the customer replies. */
+supportRouter.post(
+  '/tickets/:id/messages',
+  validate({ body: replySchema }),
+  async (req: Request, res: Response) => {
+    const user = requireUser(req);
+    const id = param(req, 'id');
+    const { body } = req.body as z.infer<typeof replySchema>;
+
+    const ticket = await prisma.supportTicket.findFirst({ where: { id, userId: user.id } });
+    if (!ticket) throw new NotFoundError('Ticket');
+
+    const message = await prisma.ticketMessage.create({
+      data: { ticketId: id, authorId: user.id, fromStaff: false, body },
+    });
+
+    /**
+     * A customer replying to a resolved ticket reopens it. Otherwise "it is
+     * still not right" lands in a closed thread nobody is looking at.
+     */
+    if (ticket.status === TicketStatus.RESOLVED || ticket.status === TicketStatus.CLOSED) {
+      await prisma.supportTicket.update({
+        where: { id },
+        data: { status: TicketStatus.OPEN, resolvedAt: null },
+      });
+    }
+
+    return created(res, message, 'Message sent');
+  },
+);
 
 /** GET /api/v1/support/admin/tickets — the support queue. */
 supportRouter.get(
@@ -146,5 +211,61 @@ supportRouter.patch(
     }
 
     return ok(res, ticket, 'Ticket updated');
+  },
+);
+
+/** GET /api/v1/support/admin/tickets/:id/messages — the thread, for staff. */
+supportRouter.get(
+  '/admin/tickets/:id/messages',
+  authorize(...ROLE_GROUPS.staff),
+  async (req: Request, res: Response) => {
+    const id = param(req, 'id');
+    const messages = await prisma.ticketMessage.findMany({
+      where: { ticketId: id },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    await prisma.ticketMessage.updateMany({
+      where: { ticketId: id, fromStaff: false, readAt: null },
+      data: { readAt: new Date() },
+    });
+
+    return ok(res, messages);
+  },
+);
+
+/** POST /api/v1/support/admin/tickets/:id/messages — staff reply. */
+supportRouter.post(
+  '/admin/tickets/:id/messages',
+  authorize(...ROLE_GROUPS.staff),
+  validate({ body: replySchema }),
+  async (req: Request, res: Response) => {
+    const user = requireUser(req);
+    const id = param(req, 'id');
+    const { body } = req.body as z.infer<typeof replySchema>;
+
+    const ticket = await prisma.supportTicket.findUnique({ where: { id } });
+    if (!ticket) throw new NotFoundError('Ticket');
+
+    const message = await prisma.ticketMessage.create({
+      data: { ticketId: id, authorId: user.id, fromStaff: true, body },
+    });
+
+    // Picking up a ticket by answering it is the same as starting work on it.
+    if (ticket.status === TicketStatus.OPEN) {
+      await prisma.supportTicket.update({
+        where: { id },
+        data: { status: TicketStatus.IN_PROGRESS },
+      });
+    }
+
+    // The customer is told, because nothing else would tell them.
+    void notifications.notifyTicketReply({
+      userId: ticket.userId,
+      ticketNumber: ticket.ticketNumber,
+      preview: body,
+    });
+
+    return created(res, message, 'Reply sent');
   },
 );

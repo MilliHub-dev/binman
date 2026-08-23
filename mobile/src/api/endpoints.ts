@@ -1,5 +1,6 @@
 import { api } from './client';
 import type {
+  TicketMessage,
   Address,
   Booking,
   DayAvailability,
@@ -188,7 +189,12 @@ export const markAllNotificationsRead = () => api.post<{ updated: number }>('/no
 
 // --- Reviews & support ------------------------------------------------------
 
-export const createReview = (input: { bookingId: string; rating: number; comment?: string }) =>
+export const createReview = (input: {
+  bookingId: string;
+  rating: number;
+  comment?: string;
+  tags?: string[];
+}) =>
   api.post<Review>('/reviews', input);
 
 export const listReviews = () => api.get<Review[]>('/reviews');
@@ -197,5 +203,11 @@ export const createTicket = (input: { subject: string; description: string; book
   api.post<SupportTicket>('/support/tickets', input);
 
 export const listTickets = () => api.get<SupportTicket[]>('/support/tickets');
+
+export const listTicketMessages = (ticketId: string) =>
+  api.get<TicketMessage[]>(`/support/tickets/${ticketId}/messages`);
+
+export const replyToTicket = (ticketId: string, body: string) =>
+  api.post<TicketMessage>(`/support/tickets/${ticketId}/messages`, { body });
 
 export type { PageMeta };

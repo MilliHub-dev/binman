@@ -38,7 +38,7 @@ export const BookingCard: React.FC<Props> = ({ booking, onPress }) => {
 
       <View style={styles.metaRow}>
         <Text variant="caption" tone="secondary">
-          📍 {booking.address.area}
+          {booking.address.area}
         </Text>
         {detail ? (
           <Text variant="caption" tone="secondary">

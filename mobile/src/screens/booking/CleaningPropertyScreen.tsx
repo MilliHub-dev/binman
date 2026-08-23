@@ -3,19 +3,19 @@ import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Button, OptionCard, Screen, StepHeader, Text } from '../../components';
+import { Button, OptionCard, Screen, StepHeader, Text, type IconName } from '../../components';
 import { spacing } from '../../theme';
 import { useBookingDraft } from '../../store/bookingDraft';
 import type { PropertySize, PropertyType } from '../../api/types';
 import type { BookingStackParamList } from '../../navigation/types';
 
 /** ui.md §30 — property type and size. */
-const TYPES: Array<{ value: PropertyType; label: string; emoji: string }> = [
-  { value: 'APARTMENT', label: 'Apartment', emoji: '🏢' },
-  { value: 'HOUSE', label: 'House', emoji: '🏠' },
-  { value: 'OFFICE', label: 'Office', emoji: '🏬' },
-  { value: 'SHOP', label: 'Shop', emoji: '🏪' },
-  { value: 'OTHER', label: 'Other', emoji: '🏘️' },
+const TYPES: Array<{ value: PropertyType; label: string; icon: IconName }> = [
+  { value: 'APARTMENT', label: 'Apartment', icon: 'apartment' },
+  { value: 'HOUSE', label: 'House', icon: 'home' },
+  { value: 'OFFICE', label: 'Office', icon: 'office' },
+  { value: 'SHOP', label: 'Shop', icon: 'shop' },
+  { value: 'OTHER', label: 'Other', icon: 'warehouse' },
 ];
 
 const SIZES: Array<{ value: PropertySize; label: string }> = [
@@ -50,7 +50,7 @@ export const CleaningPropertyScreen: React.FC = () => {
         <OptionCard
           key={type.value}
           title={type.label}
-          emoji={type.emoji}
+          icon={type.icon}
           selected={propertyType === type.value}
           onPress={() => setCleaning({ propertyType: type.value })}
         />

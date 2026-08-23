@@ -4,7 +4,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as WebBrowser from 'expo-web-browser';
 
-import { Button, Card, ErrorState, LoadingState, Screen, Text } from '../../components';
+import { Icon, Button, Card, ErrorState, LoadingState, Screen, Text } from '../../components';
 import { spacing, useStyles, type Colors, useTheme } from '../../theme';
 import { checkPayment, initiatePayment } from '../../api/endpoints';
 import { useBooking } from '../../api/queries';
@@ -145,7 +145,7 @@ export const PaymentScreen: React.FC = () => {
 
       <Card selected>
         <View style={styles.method}>
-          <Text style={styles.methodEmoji}>💳</Text>
+          <Icon name="card" size={22} color={colors.brand} />
           <View style={styles.methodBody}>
             <Text variant="bodyMedium">Card, transfer or USSD</Text>
             <Text variant="caption" tone="secondary">

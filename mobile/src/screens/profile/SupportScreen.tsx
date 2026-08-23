@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
-import { Button, Card, Input, Screen, StatusBadge, Text } from '../../components';
-import { colors, spacing, useStyles, type Colors } from '../../theme';
+import { Icon, Button, Card, Input, Screen, StatusBadge, Text } from '../../components';
+import { colors, spacing, useStyles, type Colors, useTheme } from '../../theme';
 import { formatTimeAgo } from '../../utils/format';
 import { useCreateTicket, useTickets } from '../../api/queries';
+import { TicketThread } from './TicketThread';
 import { ApiError } from '../../api/client';
 import {
   SUPPORT_EMAIL,
@@ -18,12 +19,15 @@ import {
 /** ui.md §38 — support options plus a ticket form. */
 export const SupportScreen: React.FC = () => {
   const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
   const { data: tickets } = useTickets();
   const createTicket = useCreateTicket();
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [sent, setSent] = useState(false);
+  /** One thread at a time; a page of expanded conversations is unreadable. */
+  const [openTicket, setOpenTicket] = useState<string | null>(null);
 
   const canSubmit = subject.trim().length > 2 && description.trim().length > 4;
 
@@ -37,19 +41,19 @@ export const SupportScreen: React.FC = () => {
 
   const channels = [
     {
-      emoji: '💬',
+      icon: 'support' as const,
       label: 'WhatsApp support',
       detail: 'Fastest response',
       onPress: () => Linking.openURL(`https://wa.me/${SUPPORT_WHATSAPP}`),
     },
     {
-      emoji: '📞',
+      icon: 'phone' as const,
       label: 'Call us',
       detail: SUPPORT_PHONE_DISPLAY,
       onPress: () => Linking.openURL(`tel:${SUPPORT_PHONE}`),
     },
     {
-      emoji: '✉️',
+      icon: 'mail' as const,
       label: 'Email us',
       detail: SUPPORT_EMAIL,
       onPress: () => Linking.openURL(`mailto:${SUPPORT_EMAIL}`),
@@ -66,7 +70,9 @@ export const SupportScreen: React.FC = () => {
             style={[styles.row, index > 0 && styles.divided]}
             accessibilityRole="button"
           >
-            <Text style={styles.emoji}>{channel.emoji}</Text>
+            <View style={styles.channelIcon}>
+              <Icon name={channel.icon} size={18} color={colors.brand} />
+            </View>
             <View style={styles.rowBody}>
               <Text variant="bodyMedium">{channel.label}</Text>
               <Text variant="caption" tone="secondary">
@@ -103,7 +109,7 @@ export const SupportScreen: React.FC = () => {
 
       {sent ? (
         <Text tone="success" center style={styles.sent}>
-          ✓ Sent. Our team will be in touch shortly.
+          Sent. Our team will be in touch shortly.
         </Text>
       ) : null}
 
@@ -114,18 +120,29 @@ export const SupportScreen: React.FC = () => {
           </Text>
           {tickets.map((ticket) => (
             <Card key={ticket.id} style={styles.ticket}>
-              <View style={styles.ticketHeader}>
-                <Text variant="caption" tone="muted">
-                  {ticket.ticketNumber}
+              <Pressable
+                onPress={() =>
+                  setOpenTicket((current) => (current === ticket.id ? null : ticket.id))
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`${ticket.subject}. Tap to ${openTicket === ticket.id ? 'hide' : 'view'} the conversation.`}
+              >
+                <View style={styles.ticketHeader}>
+                  <Text variant="caption" tone="muted">
+                    {ticket.ticketNumber}
+                  </Text>
+                  <StatusBadge status={ticket.status} />
+                </View>
+                <Text variant="bodyMedium" style={styles.ticketSubject}>
+                  {ticket.subject}
                 </Text>
-                <StatusBadge status={ticket.status} />
-              </View>
-              <Text variant="bodyMedium" style={styles.ticketSubject}>
-                {ticket.subject}
-              </Text>
-              <Text variant="caption" tone="muted">
-                {formatTimeAgo(ticket.createdAt)}
-              </Text>
+                <Text variant="caption" tone="brand">
+                  {openTicket === ticket.id ? 'Hide conversation' : 'View conversation'} ·{' '}
+                  {formatTimeAgo(ticket.createdAt)}
+                </Text>
+              </Pressable>
+
+              {openTicket === ticket.id ? <TicketThread ticketId={ticket.id} /> : null}
             </Card>
           ))}
         </View>
@@ -140,7 +157,7 @@ const makeStyles = (c: Colors) => StyleSheet.create({
   channels: { marginTop: spacing.base },
   row: { flexDirection: 'row', alignItems: 'center', padding: spacing.base },
   divided: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
-  emoji: { fontSize: 20, marginRight: spacing.md },
+  channelIcon: { width: 34, alignItems: 'center', marginRight: spacing.md },
   rowBody: { flex: 1 },
   section: { marginTop: spacing.xl, marginBottom: spacing.md },
   multiline: { minHeight: 100, textAlignVertical: 'top' },

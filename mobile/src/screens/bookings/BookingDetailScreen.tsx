@@ -151,7 +151,7 @@ export const BookingDetailScreen: React.FC = () => {
           discount={booking.pricing.discount}
         />
         <Text variant="caption" tone={booking.paymentStatus === 'SUCCESSFUL' ? 'success' : 'muted'}>
-          {booking.paymentStatus === 'SUCCESSFUL' ? '✓ Paid' : humanise(booking.paymentStatus)}
+          {booking.paymentStatus === 'SUCCESSFUL' ? 'Paid' : humanise(booking.paymentStatus)}
         </Text>
       </Card>
 

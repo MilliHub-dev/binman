@@ -61,17 +61,13 @@ export const RateServiceScreen: React.FC = () => {
   const submit = async () => {
     if (rating === 0) return;
 
-    /**
-     * Tags are folded into the comment because the API stores free text only.
-     * Kept on their own first line so they stay readable in the admin review
-     * list, and so they could be parsed back out if they ever earn a column.
-     */
-    const parts = [tags.join(' · '), comment.trim()].filter(Boolean);
-
+    // Tags go in their own field now, so operations can count them rather than
+    // grep a paragraph. The comment stays whatever the customer actually wrote.
     await createReview.mutateAsync({
       bookingId,
       rating,
-      ...(parts.length ? { comment: parts.join('\n\n') } : {}),
+      ...(tags.length ? { tags } : {}),
+      ...(comment.trim() ? { comment: comment.trim() } : {}),
     });
     navigation.goBack();
   };

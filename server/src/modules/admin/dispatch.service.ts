@@ -24,7 +24,7 @@ const log = createLogger('dispatch');
 export const getDispatchBoard = async (date?: string) => {
   const target = toDateOnly(date ?? businessToday());
 
-  const [unassigned, drivers, trucks] = await Promise.all([
+  const [unassigned, drivers, trucks, awaitingPayment, elsewhere] = await Promise.all([
     prisma.booking.findMany({
       where: {
         scheduledDate: target,
@@ -60,6 +60,26 @@ export const getDispatchBoard = async (date?: string) => {
       where: { status: { notIn: [TruckStatus.OUT_OF_SERVICE] } },
       orderBy: { truckNumber: 'asc' },
     }),
+    /**
+     * Why the board might be empty.
+     *
+     * A dispatcher looking at nothing cannot tell the difference between "no
+     * work today" and "the work exists but is unpaid, or is on another day".
+     * Both answers are cheap to fetch and turn a blank screen into a fact.
+     */
+    prisma.booking.count({
+      where: { scheduledDate: target, status: BookingStatus.PENDING_PAYMENT },
+    }),
+    prisma.booking.groupBy({
+      by: ['scheduledDate'],
+      where: {
+        scheduledDate: { gt: target },
+        status: { in: [BookingStatus.PAID, BookingStatus.PENDING_ASSIGNMENT] },
+      },
+      _count: { _all: true },
+      orderBy: { scheduledDate: 'asc' },
+      take: 5,
+    }),
   ]);
 
   return {
@@ -91,6 +111,12 @@ export const getDispatchBoard = async (date?: string) => {
       verificationStatus: d.verificationStatus,
     })),
     trucks,
+    awaitingPayment,
+    /** Upcoming dates that do have work, so the UI can offer a way there. */
+    upcoming: elsewhere.map((row) => ({
+      date: formatDateOnly(row.scheduledDate),
+      count: row._count._all,
+    })),
   };
 };
 

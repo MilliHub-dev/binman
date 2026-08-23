@@ -89,7 +89,7 @@ export const PersonalInfoScreen: React.FC = () => {
 
       {saved ? (
         <Text tone="success" center>
-          ✓ Saved
+          Saved
         </Text>
       ) : null}
     </Screen>
