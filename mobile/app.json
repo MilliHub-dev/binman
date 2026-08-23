@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "BinMan",
+    "slug": "binman",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./img/logo.png",
+    "scheme": "binman",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.binman.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BinMan uses your location to find your pickup address and show you where your collection team is.",
+        "NSCameraUsageDescription": "BinMan uses your camera so you can add a profile photo.",
+        "NSPhotoLibraryUsageDescription": "BinMan needs access to your photos so you can choose a profile picture."
+      }
+    },
+    "android": {
+      "package": "com.binman.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./img/logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./img/spashicon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./img/logo.png",
+          "color": "#189CF0"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BinMan uses your location to find your pickup address and show you where your collection team is."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BinMan needs access to your photos so you can choose a profile picture."
+        }
+      ],
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:4000",
+      "eas": {
+        "projectId": "1e0d22a9-10de-4153-93c2-3396ff925e97"
+      }
+    }
+  }
+}
