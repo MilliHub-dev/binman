@@ -458,6 +458,23 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
+            <div>
+              <p className="font-display text-xs font-bold uppercase tracking-[0.14em] text-ink-400">
+                Legal
+              </p>
+              <ul className="mt-3 space-y-2 text-ink-600">
+                <li>
+                  <Link href="/terms" className="hover:text-brand">
+                    Terms &amp; conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-brand">
+                    Privacy policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
