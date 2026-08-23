@@ -40,6 +40,7 @@ NODE_ENV=production
 OTP_DEBUG_RETURN=false
 SMS_PROVIDER=sendchamp
 EMAIL_PROVIDER=sendchamp
+SENDCHAMP_SENDER_NAME=Sendchamp
 CORS_ORIGINS=https://binman.ng,https://www.binman.ng,https://admin.binman.ng
 ```
 
@@ -65,12 +66,18 @@ behaviour when moving off shared development keys.
 ## 3. Blockers that configuration alone will not fix
 
 **The Sendchamp sender ID must be one they have approved.** The credential is
-valid, but the sender name is not:
+valid; the sender name is not. Re-verified against the live API:
 
 ```
 sender_name=BinMan     -> 400  "invalid sender name: BinMan"
 sender_name=Sendchamp  -> 200  accepted
 ```
+
+`SMS_PROVIDER=sendchamp` with an unapproved sender is the worst of both worlds:
+the service boots, and then every sign-in returns 503 `OTP_SEND_FAILED` because
+the provider refuses each message. Ship with `Sendchamp` as the sender and
+register `BinMan` in their dashboard for branding — swapping it later is one
+variable.
 
 Set `SENDCHAMP_SENDER_NAME=Sendchamp` to go live now. Register `BinMan` as a
 sender ID in the Sendchamp dashboard and switch once approved — that string is
