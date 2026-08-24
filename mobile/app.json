@@ -16,7 +16,8 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "BinMan uses your location to find your pickup address and show you where your collection team is.",
         "NSCameraUsageDescription": "BinMan uses your camera so you can add a profile photo.",
-        "NSPhotoLibraryUsageDescription": "BinMan needs access to your photos so you can choose a profile picture."
+        "NSPhotoLibraryUsageDescription": "BinMan needs access to your photos so you can choose a profile picture.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
