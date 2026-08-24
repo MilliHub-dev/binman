@@ -60,6 +60,22 @@ const schema = z
     OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
     OTP_DEBUG_RETURN: bool.default('false'),
 
+    /**
+     * A single account App Store and Play Store reviewers can sign into.
+     *
+     * Reviewers sit outside Nigeria and cannot receive an SMS on a Nigerian
+     * number, so a store submission that only offers phone-code sign-in is
+     * rejected as untestable. This whitelists exactly one number to receive a
+     * fixed code instead of a random one.
+     *
+     * It is a deliberate back door, so it is narrow: one number, one code, and
+     * nothing else about the flow changes — the code is still hashed, still
+     * expires, still single-use, and the rate limiter still applies. Unset both
+     * values and it does not exist.
+     */
+    DEMO_PHONE: z.string().default(''),
+    DEMO_OTP: z.string().default(''),
+
     CURRENCY: z.string().length(3).default('NGN'),
     DEFAULT_SERVICE_FEE: z.coerce.number().int().nonnegative().default(50000),
 
@@ -136,6 +152,32 @@ const schema = z
   })
   .superRefine((env, ctx) => {
     const isProdLike = env.NODE_ENV === 'production' || env.NODE_ENV === 'staging';
+
+    // Half a configuration is the dangerous state: a whitelisted number with no
+    // fixed code would fall through to a real one nobody can receive.
+    if (Boolean(env.DEMO_PHONE) !== Boolean(env.DEMO_OTP)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DEMO_PHONE'],
+        message: 'DEMO_PHONE and DEMO_OTP must be set together, or neither',
+      });
+    }
+
+    if (env.DEMO_OTP && env.DEMO_OTP.length !== env.OTP_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DEMO_OTP'],
+        message: `DEMO_OTP must be exactly ${env.OTP_LENGTH} digits to match OTP_LENGTH`,
+      });
+    }
+
+    if (env.DEMO_OTP && !/^\d+$/.test(env.DEMO_OTP)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DEMO_OTP'],
+        message: 'DEMO_OTP must be digits only — the app offers a numeric keypad',
+      });
+    }
 
     // Returning the OTP in an API response is a development affordance. Letting
     // it reach a real deployment would hand every account to anyone who knows

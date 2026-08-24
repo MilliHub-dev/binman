@@ -106,7 +106,33 @@ Set `NEXT_PUBLIC_API_URL` only to point somewhere else.
 Whatever domains they end up on must appear in `CORS_ORIGINS` above, or every
 browser request fails preflight.
 
-## 6. Mobile
+## 6. Store review access
+
+Both stores reject a submission they cannot sign into, and their reviewers
+cannot receive a Nigerian SMS. Set on Render:
+
+```
+DEMO_PHONE=08012312312
+DEMO_OTP=246810
+```
+
+Then `npm run seed:demo` to give the account an address, three bookings in
+different states and a weekly plan — a reviewer who lands in an empty app cannot
+tell a working product from a broken one.
+
+Put these in the review notes of both listings:
+
+```
+Phone number: 08012312312
+Code:         246810
+No SMS is sent to this number; the code above always works.
+```
+
+This is a deliberate back door, so keep it narrow: it is one number, verified
+against every other, and unsetting both values removes it entirely. Remove them
+once the app is through review.
+
+## 7. Mobile
 
 `eas build --profile production --platform android`. The profile already carries
 `EXPO_PUBLIC_API_URL=https://binman-kx0b.onrender.com`.
@@ -116,7 +142,7 @@ square including the wordmark. Launchers mask adaptive icons to a circle and
 trim the outer ~25%, so the wordmark will be cropped. A foreground with just the
 mark and generous padding survives the mask.
 
-## 7. Hosting
+## 8. Hosting
 
 Render's free tier suspends instances when idle, and a cold start runs past 20
 seconds. The mobile client waits 45s to accommodate that, but a customer opening

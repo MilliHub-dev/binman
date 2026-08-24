@@ -11,7 +11,7 @@ import {
 } from '../../lib/errors';
 import { generateOtp } from '../../lib/reference';
 import { createLogger } from '../../lib/logger';
-import { maskPhone } from '../../lib/phone';
+import { maskPhone, normalisePhone } from '../../lib/phone';
 import { sendSms } from '../../services/sms.service';
 
 const log = createLogger('otp');
@@ -70,7 +70,17 @@ export const issueOtp = async (
     );
   }
 
-  const code = generateOtp(env.OTP_LENGTH);
+  /**
+   * The store-review account gets a fixed code instead of a random one.
+   *
+   * Everything else is identical: the code is hashed the same way, expires on
+   * the same clock, is consumed once, and the attempt counter and rate limiter
+   * both still apply. The only difference is that its value is known in advance
+   * — which it has to be, because an App Store reviewer in California cannot
+   * receive an SMS on a Nigerian number.
+   */
+  const isDemoAccount = env.DEMO_PHONE !== '' && phone === normalisePhone(env.DEMO_PHONE);
+  const code = isDemoAccount ? env.DEMO_OTP : generateOtp(env.OTP_LENGTH);
   const otpHash = await bcrypt.hash(code, BCRYPT_ROUNDS);
   const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
 
@@ -90,6 +100,16 @@ export const issueOtp = async (
   await redis
     .set(cooldownKey, '1', 'EX', env.OTP_RESEND_COOLDOWN_SECONDS)
     .catch((err) => log.error({ err }, 'could not set OTP cooldown'));
+
+  /**
+   * No SMS for the review account. Sending one would fail — the number is not
+   * a real handset — and a failed send now throws, which would lock a reviewer
+   * out of the very account that exists for them.
+   */
+  if (isDemoAccount) {
+    log.warn({ phone: maskPhone(phone) }, 'store-review account signed in with its fixed code');
+    return { expiresAt, ...(env.OTP_DEBUG_RETURN ? { debugCode: code } : {}) };
+  }
 
   const sent = await sendSms({
     to: phone,
