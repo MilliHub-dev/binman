@@ -103,7 +103,16 @@ const schema = z
     EMAIL_PROVIDER: z.enum(['log', 'sendchamp']).default('log'),
     SENDCHAMP_BASE_URL: z.string().url().default('https://api.sendchamp.com/api/v1'),
     SENDCHAMP_PUBLIC_KEY: z.string().default(''),
-    SENDCHAMP_SENDER_NAME: z.string().default('BinMan'),
+    /**
+     * Must be a sender ID Sendchamp has approved for the account.
+     *
+     * The default was "BinMan", which they reject — every send came back
+     * "invalid sender name" and no code ever arrived. A default that is
+     * guaranteed to fail is worse than no default: leaving the variable unset
+     * looked like a working configuration. "Sendchamp" is their shared sender
+     * and always works; register your own and set this to use it.
+     */
+    SENDCHAMP_SENDER_NAME: z.string().default('Sendchamp'),
     /**
      * Nigerian networks require DND-registered routing to reach subscribers who
      * have opted out of promotional SMS. OTPs are transactional, so `dnd` is

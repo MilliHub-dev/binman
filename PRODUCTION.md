@@ -40,7 +40,6 @@ NODE_ENV=production
 OTP_DEBUG_RETURN=false
 SMS_PROVIDER=sendchamp
 EMAIL_PROVIDER=sendchamp
-SENDCHAMP_SENDER_NAME=Sendchamp
 CORS_ORIGINS=https://binman.ng,https://www.binman.ng,https://admin.binman.ng
 ```
 
@@ -75,9 +74,11 @@ sender_name=Sendchamp  -> 200  accepted
 
 `SMS_PROVIDER=sendchamp` with an unapproved sender is the worst of both worlds:
 the service boots, and then every sign-in returns 503 `OTP_SEND_FAILED` because
-the provider refuses each message. Ship with `Sendchamp` as the sender and
-register `BinMan` in their dashboard for branding — swapping it later is one
-variable.
+the provider refuses each message.
+
+`SENDCHAMP_SENDER_NAME` therefore now defaults to `Sendchamp`, which they always
+accept, so it needs no entry above. Register `BinMan` in their dashboard for
+branding and set the variable once it is approved.
 
 Set `SENDCHAMP_SENDER_NAME=Sendchamp` to go live now. Register `BinMan` as a
 sender ID in the Sendchamp dashboard and switch once approved — that string is
