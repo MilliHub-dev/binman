@@ -12,7 +12,7 @@ import {
 import { generateOtp } from '../../lib/reference';
 import { createLogger } from '../../lib/logger';
 import { maskPhone, normalisePhone } from '../../lib/phone';
-import { sendSms } from '../../services/sms.service';
+import { deliverOtp } from '../../services/otp-delivery.service';
 
 const log = createLogger('otp');
 
@@ -111,12 +111,7 @@ export const issueOtp = async (
     return { expiresAt, ...(env.OTP_DEBUG_RETURN ? { debugCode: code } : {}) };
   }
 
-  const sent = await sendSms({
-    to: phone,
-    message: `Your BinMan verification code is ${code}. It expires in ${Math.round(
-      env.OTP_TTL_SECONDS / 60,
-    )} minutes. Do not share it with anyone.`,
-  });
+  const sent = await deliverOtp(phone, code);
 
   /**
    * A rejected send used to be discarded, so the API answered "Verification
@@ -129,14 +124,14 @@ export const issueOtp = async (
    */
   if (!sent.delivered) {
     await redis.del(cooldownKey).catch((err) => log.error({ err }, 'could not clear OTP cooldown'));
-    log.error({ phone: maskPhone(phone), error: sent.error }, 'otp sms rejected by provider');
+    log.error({ phone: maskPhone(phone), error: sent.error }, 'otp rejected by provider');
     throw new ServiceUnavailableError(
       'We could not send your code right now. Please try again in a moment.',
       'OTP_SEND_FAILED',
     );
   }
 
-  log.info({ phone: maskPhone(phone), purpose }, 'otp issued');
+  log.info({ phone: maskPhone(phone), purpose, channel: sent.channel }, 'otp issued');
 
   return {
     expiresAt,

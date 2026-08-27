@@ -61,6 +61,17 @@ const schema = z
     OTP_DEBUG_RETURN: bool.default('false'),
 
     /**
+     * Which channel carries verification codes.
+     *
+     * Defaults to `sms`, which is what has always been used — WhatsApp is
+     * cheaper and near-universal here, but Sendchamp reports success for a
+     * number that has no WhatsApp account, so a code sent to one disappears
+     * with no error to fall back on. `whatsapp_then_sms` covers a refusal from
+     * the provider, not that case.
+     */
+    OTP_CHANNEL: z.enum(['sms', 'whatsapp', 'whatsapp_then_sms']).default('sms'),
+
+    /**
      * A single account App Store and Play Store reviewers can sign into.
      *
      * Reviewers sit outside Nigeria and cannot receive an SMS on a Nigerian
