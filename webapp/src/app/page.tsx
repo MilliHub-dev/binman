@@ -9,6 +9,7 @@ import {
   ProofMark,
   RouteMap,
 } from '@/components/marketing/Artwork';
+import { SERVICE_AREAS } from '@/lib/site';
 
 /**
  * Landing page.
@@ -21,19 +22,6 @@ import {
  * The audience is on Nigerian mobile data, where a client-rendered hero costs
  * real seconds.
  */
-
-/** Must stay in step with the service areas seeded in server/prisma/seed.ts. */
-const AREAS = [
-  'Ewet Housing Estate',
-  'Shelter Afrique',
-  'Osongama',
-  'Aka Road',
-  'Oron Road',
-  'Nwaniba Road',
-  'Ikot Ekpene Road',
-  'Abak Road',
-  'Itam',
-];
 
 const STEPS = [
   {
@@ -85,7 +73,7 @@ export default function LandingPage() {
               <div>
                 <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-[13px] font-semibold text-brand-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-leaf" />
-                  Now collecting across Uyo
+                  Now collecting across Uyo and Abuja
                 </p>
 
                 <h1 className="mt-6 font-display text-[clamp(2.75rem,8vw,5.25rem)] font-black leading-[0.94] tracking-[-0.035em] text-white">
@@ -120,7 +108,7 @@ export default function LandingPage() {
                   {[
                     { k: 'From', v: '₦1,500' },
                     { k: 'Earliest slot', v: '7:00 AM' },
-                    { k: 'Areas covered', v: String(AREAS.length) },
+                    { k: 'Areas covered', v: String(SERVICE_AREAS.length) },
                   ].map((stat) => (
                     <div key={stat.k}>
                       <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
@@ -141,12 +129,18 @@ export default function LandingPage() {
           <div className="relative border-y border-white/10 bg-white/[0.03] py-3.5">
             <div className="flex overflow-hidden">
               <ul className="ticker-track flex shrink-0 items-center gap-9 pr-9">
-                {[...AREAS, ...AREAS, ...AREAS, ...AREAS].map((area, index) => (
+                {[...SERVICE_AREAS, ...SERVICE_AREAS, ...SERVICE_AREAS].map((entry, index) => (
                   <li
-                    key={`${area}-${index}`}
+                    key={`${entry.area}-${index}`}
                     className="flex shrink-0 items-center gap-9 font-display text-sm font-bold uppercase tracking-[0.18em] text-white/55"
                   >
-                    {area}
+                    <span>
+                      {entry.area}
+                      {/* The city is named because the list now spans two of
+                          them, and "Wuse" beside "Aka Road" is otherwise a
+                          puzzle rather than a coverage claim. */}
+                      <span className="ml-2 text-white/30">{entry.city}</span>
+                    </span>
                     <span className="h-1 w-1 rounded-full bg-leaf" aria-hidden="true" />
                   </li>
                 ))}
@@ -407,7 +401,7 @@ export default function LandingPage() {
               </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-500">
-              Waste collection and home services, built for Uyo.
+              Waste collection and home services in Uyo and Abuja.
             </p>
           </div>
 
