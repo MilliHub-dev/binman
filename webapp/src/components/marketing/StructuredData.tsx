@@ -1,4 +1,4 @@
-import { BUSINESS, SERVICE_AREAS, SITE_URL } from '@/lib/site';
+import { BUSINESS, CITIES, SITE_URL } from '@/lib/site';
 
 /**
  * JSON-LD describing the business, for Google's local results.
@@ -8,7 +8,12 @@ import { BUSINESS, SERVICE_AREAS, SITE_URL } from '@/lib/site';
  * rather than ten blue links. Getting into that pack needs machine-readable
  * facts: what the business does, where it serves, how to reach it, and when.
  *
- * Everything below also appears in the visible page. Schema that claims more
+ * Two cities means two LocalBusiness nodes under one Organization, not one node
+ * with an averaged address. A single business entity claiming both Uyo and
+ * Abuja would be placed at whichever coordinates it carried, so half the
+ * service area would rank for the wrong city — or neither.
+ *
+ * Everything here also appears in the visible page. Schema that claims more
  * than the page shows is a manual-action risk, not a shortcut.
  */
 export function StructuredData() {
@@ -16,54 +21,74 @@ export function StructuredData() {
     '@context': 'https://schema.org',
     '@graph': [
       {
-        '@type': 'LocalBusiness',
-        '@id': `${SITE_URL}/#business`,
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
         name: BUSINESS.name,
+        legalName: BUSINESS.legalName,
         description: BUSINESS.description,
         url: SITE_URL,
+        logo: `${SITE_URL}/og-image.png`,
+        image: `${SITE_URL}/og-image.png`,
+        email: BUSINESS.email,
+        telephone: BUSINESS.phone,
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: BUSINESS.phone,
+          email: BUSINESS.email,
+          contactType: 'customer service',
+          areaServed: 'NG',
+          availableLanguage: ['en'],
+        },
+      },
+
+      ...CITIES.map((city) => ({
+        '@type': 'LocalBusiness',
+        '@id': `${SITE_URL}/#business-${city.name.toLowerCase()}`,
+        name: `${BUSINESS.name} ${city.name}`,
+        description: `Waste collection and home cleaning in ${city.name}, ${city.region}.`,
+        url: SITE_URL,
+        image: `${SITE_URL}/og-image.png`,
         telephone: BUSINESS.phone,
         email: BUSINESS.email,
+        parentOrganization: { '@id': `${SITE_URL}/#organization` },
         priceRange: '₦₦',
         currenciesAccepted: 'NGN',
         paymentAccepted: 'Credit Card, Debit Card, Bank Transfer',
         address: {
           '@type': 'PostalAddress',
-          addressLocality: BUSINESS.city,
-          addressRegion: BUSINESS.region,
+          addressLocality: city.name,
+          addressRegion: city.region,
           addressCountry: BUSINESS.country,
         },
         geo: {
           '@type': 'GeoCoordinates',
-          latitude: BUSINESS.latitude,
-          longitude: BUSINESS.longitude,
+          latitude: city.latitude,
+          longitude: city.longitude,
         },
         // Named neighbourhoods, because that is how people search locally.
-        areaServed: SERVICE_AREAS.map((area) => ({
+        areaServed: city.areas.map((area) => ({
           '@type': 'Place',
-          name: `${area}, ${BUSINESS.city}`,
+          name: `${area}, ${city.name}`,
         })),
         openingHoursSpecification: [
           {
             '@type': 'OpeningHoursSpecification',
-            dayOfWeek: [
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-              'Saturday',
-            ],
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
             opens: '07:00',
             closes: '17:00',
           },
         ],
-      },
+      })),
+
       {
         '@type': 'Service',
         '@id': `${SITE_URL}/#waste-collection`,
         serviceType: 'Waste collection',
-        provider: { '@id': `${SITE_URL}/#business` },
-        areaServed: { '@type': 'City', name: `${BUSINESS.city}, ${BUSINESS.region}` },
+        provider: { '@id': `${SITE_URL}/#organization` },
+        areaServed: CITIES.map((city) => ({
+          '@type': 'City',
+          name: `${city.name}, ${city.region}`,
+        })),
         description:
           'Household, commercial and garden waste collected from your door on a day you choose, with photographic proof of every collection.',
       },
@@ -71,8 +96,11 @@ export function StructuredData() {
         '@type': 'Service',
         '@id': `${SITE_URL}/#home-cleaning`,
         serviceType: 'Home cleaning',
-        provider: { '@id': `${SITE_URL}/#business` },
-        areaServed: { '@type': 'City', name: `${BUSINESS.city}, ${BUSINESS.region}` },
+        provider: { '@id': `${SITE_URL}/#organization` },
+        areaServed: CITIES.map((city) => ({
+          '@type': 'City',
+          name: `${city.name}, ${city.region}`,
+        })),
         description:
           'Vetted cleaners for regular upkeep, a deep clean, or a move-out handover.',
       },
@@ -81,7 +109,7 @@ export function StructuredData() {
         '@id': `${SITE_URL}/#website`,
         url: SITE_URL,
         name: BUSINESS.name,
-        publisher: { '@id': `${SITE_URL}/#business` },
+        publisher: { '@id': `${SITE_URL}/#organization` },
         inLanguage: 'en-NG',
       },
     ],
@@ -90,8 +118,8 @@ export function StructuredData() {
   return (
     <script
       type="application/ld+json"
-      // The content is built from constants in this repository, never from user
-      // input, so there is nothing here for a script tag to smuggle.
+      // Built from constants in this repository, never from user input, so
+      // there is nothing here for a script tag to smuggle.
       dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
     />
   );

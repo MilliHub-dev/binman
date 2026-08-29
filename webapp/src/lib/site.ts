@@ -14,26 +14,56 @@ export const BUSINESS = {
   name: 'BinMan',
   legalName: 'BinMan',
   description:
-    'On-demand waste collection and home cleaning in Uyo, Akwa Ibom State. Book a pickup from your phone and a team collects it from your doorstep.',
+    'On-demand waste collection and home cleaning in Uyo and Abuja. Book a pickup from your phone and a team collects it from your doorstep.',
   phone: SUPPORT_PHONE,
   email: SUPPORT_EMAIL,
-  city: 'Uyo',
-  region: 'Akwa Ibom',
   country: 'NG',
-  /** Uyo city centre — the service area, not a shopfront. */
-  latitude: 5.0378,
-  longitude: 7.9128,
 } as const;
 
-/** The nine areas served, which is what people actually search for. */
-export const SERVICE_AREAS = [
-  'Ewet Housing Estate',
-  'Shelter Afrique',
-  'Osongama Estate',
-  'Aka Road',
-  'Oron Road',
-  'Nwaniba Road',
-  'Ikot Ekpene Road',
-  'Abak Road',
-  'Itam',
+/**
+ * Where we operate.
+ *
+ * Cities carry their own coordinates because a single point cannot represent
+ * two markets 700km apart, and a wrong one puts the business in the wrong
+ * local results entirely.
+ *
+ * The named areas are the ones people actually type — "waste collection Wuse"
+ * far outnumbers "waste collection Abuja" — so they are listed individually in
+ * the structured data.
+ */
+export const CITIES = [
+  {
+    name: 'Uyo',
+    region: 'Akwa Ibom',
+    latitude: 5.0378,
+    longitude: 7.9128,
+    areas: [
+      'Ewet Housing Estate',
+      'Shelter Afrique',
+      'Osongama Estate',
+      'Aka Road',
+      'Oron Road',
+      'Nwaniba Road',
+      'Ikot Ekpene Road',
+      'Abak Road',
+      'Itam',
+    ],
+  },
+  {
+    name: 'Abuja',
+    region: 'Federal Capital Territory',
+    latitude: 9.0765,
+    longitude: 7.3986,
+    /**
+     * These are the areas the API actually holds, not a plausible list of
+     * Abuja districts. Advertising a district the booking flow then refuses
+     * turns a search result into a dead end.
+     */
+    areas: ['Wuse', 'Wuse 2', 'Garki', 'Maitama', 'Asokoro', 'Gwarinpa', 'Jabi'],
+  },
 ] as const;
+
+/** Every named area across both cities, flattened. */
+export const SERVICE_AREAS = CITIES.flatMap((city) =>
+  city.areas.map((area) => ({ area, city: city.name })),
+);

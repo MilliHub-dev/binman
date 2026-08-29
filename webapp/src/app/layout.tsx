@@ -30,19 +30,23 @@ const body = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.binman.site'),
   title: {
-    default: 'BinMan — Waste collection made simple in Uyo',
+    default: 'BinMan — Waste collection in Uyo & Abuja',
     template: '%s · BinMan',
   },
   description:
-    'Book a waste pickup from your phone and our team collects it from your doorstep. Every collection photographed, timed and GPS-stamped. Serving Ewet Housing Estate, Shelter Afrique, Osongama, Aka Road, Oron Road and across Uyo.',
+    'Book a waste pickup from your phone and our team collects it from your doorstep. Every collection photographed, timed and GPS-stamped. Serving Uyo — Ewet Housing Estate, Shelter Afrique, Osongama, Aka Road — and Abuja: Wuse, Garki, Maitama, Asokoro, Gwarinpa and Jabi.',
   keywords: [
     'waste collection Uyo',
+    'waste collection Abuja',
+    'refuse disposal Abuja',
     'refuse disposal Akwa Ibom',
-    'waste management Uyo',
-    'home cleaning Uyo',
+    'waste management Abuja',
     'waste pickup Uyo',
-    'dustbin collection Uyo',
-    'cleaning services Akwa Ibom',
+    'waste disposal Wuse',
+    'home cleaning Abuja',
+    'home cleaning Uyo',
+    'cleaning services Abuja',
+    'dustbin collection Nigeria',
   ],
   /**
    * Without a canonical, the same page reachable at www and apex, with and
@@ -54,14 +58,27 @@ export const metadata: Metadata = {
     locale: 'en_NG',
     siteName: 'BinMan',
     url: '/',
-    title: 'BinMan — Waste collection made simple in Uyo',
+    title: 'BinMan — Waste collection in Uyo & Abuja',
     description:
-      'Schedule a pickup and our team collects it from your doorstep. Uyo, Akwa Ibom.',
+      'Schedule a pickup and our team collects it from your doorstep. Uyo and Abuja.',
+    /**
+     * An absolute 1200x630 card. Without one, a link shared to WhatsApp — which
+     * is how this spreads here — renders as a bare grey box.
+     */
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BinMan — we collect, we clean, you relax',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BinMan — Waste collection made simple in Uyo',
-    description: 'Book a pickup from your phone. Uyo, Akwa Ibom.',
+    title: 'BinMan — Waste collection in Uyo & Abuja',
+    description: 'Book a pickup from your phone. Uyo and Abuja.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
