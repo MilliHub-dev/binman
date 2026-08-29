@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Privacy policy',
   description:
     'What personal data BinMan collects, why we hold it, who else sees it, and what you can ask us to do with it.',
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {

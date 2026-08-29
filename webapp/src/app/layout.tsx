@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Archivo, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
+import { StructuredData } from '@/components/marketing/StructuredData';
 
 /**
  * Two faces, two jobs.
@@ -27,7 +28,7 @@ const body = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://binman.ng'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.binman.site'),
   title: {
     default: 'BinMan — Waste collection made simple in Uyo',
     template: '%s · BinMan',
@@ -37,19 +38,44 @@ export const metadata: Metadata = {
   keywords: [
     'waste collection Uyo',
     'refuse disposal Akwa Ibom',
+    'waste management Uyo',
     'home cleaning Uyo',
-    'waste pickup service',
+    'waste pickup Uyo',
+    'dustbin collection Uyo',
+    'cleaning services Akwa Ibom',
   ],
+  /**
+   * Without a canonical, the same page reachable at www and apex, with and
+   * without a trailing slash, competes with itself and splits its own ranking.
+   */
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_NG',
     siteName: 'BinMan',
-    title: 'BinMan — Waste collection made simple',
+    url: '/',
+    title: 'BinMan — Waste collection made simple in Uyo',
     description:
       'Schedule a pickup and our team collects it from your doorstep. Uyo, Akwa Ibom.',
   },
-  twitter: { card: 'summary_large_image' },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BinMan — Waste collection made simple in Uyo',
+    description: 'Book a pickup from your phone. Uyo, Akwa Ibom.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      // Let Google use a full-size preview image and an untruncated snippet.
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  category: 'Waste management',
 };
 
 export const viewport: Viewport = {
@@ -63,7 +89,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-NG" className={`${display.variable} ${body.variable}`}>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        <StructuredData />
+        {children}
+      </body>
     </html>
   );
 }

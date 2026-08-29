@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Terms & conditions',
   description:
     'What you can expect from BinMan and what we expect from you: bookings, prices, cancellations and refunds.',
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {

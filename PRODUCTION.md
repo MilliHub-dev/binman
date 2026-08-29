@@ -40,7 +40,7 @@ NODE_ENV=production
 OTP_DEBUG_RETURN=false
 SMS_PROVIDER=sendchamp
 EMAIL_PROVIDER=sendchamp
-CORS_ORIGINS=https://binman.ng,https://www.binman.ng,https://admin.binman.ng
+CORS_ORIGINS=https://www.binman.site,https://binman.site
 ```
 
 Plus fresh secrets. **Do not reuse the development values** — they are in the
